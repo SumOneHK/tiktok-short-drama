@@ -112,7 +112,16 @@
 
 适用于本 skill 全部项目。无论 artStyle 是写实电影感、港风复古、国潮水墨、赛博朋克、厚涂插画还是 3D 卡通，分镜字段结构都相同；artStyle 只影响 `AI 画面提示` 的关键词。
 
+> **文件头部必须包含 YAML frontmatter**（锁定源剧本版本，用于 `/总检` 断点对齐检查）。`source_episode_version` 必须与拆镜时 `分集剧本/第{NNN}集.md` 的 `version` 字段严格一致；若源剧本 version 被更新（比如 `/分镜脚本` 白名单回写或作者直接修订）而本分镜稿 `source_episode_version` 未同步，`/总检` 判 P0 "裸分镜集"，必须重走 `/分镜脚本 {起止集}` 或显式确认本分镜稿无需重做后手动升级 `source_episode_version`。
+
 ```markdown
+---
+episode: {NNN}
+source_episode_version: 1
+storyboard_version: 1
+updated_at: YYYY-MM-DD
+---
+
 # 第{NNN}集 分镜脚本 {标题}
 
 ## 集信息

@@ -45,7 +45,8 @@
 5. 若 `mode=overseas`，必须额外复查成片上屏字卡、屏幕 UI 文字和字幕强化提示是否误带中文；中文只允许留在文档说明和 `中译` 中，不得以"双语屏幕字"形式进入成片指令。
 6. **断点对齐检查（强制）**：读取 `剧本状态.json` 的 `deliveryProgress.scriptCompletedRanges` 和 `storyboardCompletedRanges`，按集号做交错对齐：
    - **裸剧本集**：有剧本但没对应分镜的集号，列入"待转分镜"清单，不阻塞 `/总检` 通过，但必须在总检报告中显式列出
-   - **裸分镜集**：有分镜但剧本过时（剧本哈希不匹配或剧本被改过但分镜未重做）的集号，判 `P0`
+   - **裸分镜集 / 源剧本过时**：遍历每个已落盘分镜稿，读取其 YAML frontmatter 的 `source_episode_version`，与对应 `分集剧本/第NNN集.md` frontmatter 的 `version` 字段严格比对。不一致 = 剧本已更新但分镜未重做，判 `P0`，列入"需重做分镜"清单。`version` frontmatter 字段口径见 `references/episode-script-templates.md` 与 `references/storyboard-script-templates.md`
+   - **frontmatter 缺失**：任一 `分集剧本/*.md` 缺 `version` 或任一 `分镜脚本/*.md` 缺 `source_episode_version` = `P0`，本身就阻塞 `/总检` 通过
    - **交错空洞**：若存在 "第 1-5 集有剧本没分镜 / 第 6-10 集有分镜没剧本" 这种非单调推进模式，判 `P1` 并在报告中标红提示
    同时核对 `qcStatus.episodes[*]` 和 `qcStatus.storyboards[*]`：任一集仍为 `需修改` 状态 = `P0` 阻塞 `/总检` 通过。
 7. 首次进入 `/总检` 时，若 `总检报告.md` 不存在才创建；不要提前创建 `合规报告.md` 或 `导出/`。

@@ -71,7 +71,7 @@
 
 ## `deliveryProgress` 字段约定
 
-- `scriptCompletedRanges`：已完成并落盘的剧本区间列表，写实际集数区间，如 `001-005`
+- `scriptCompletedRanges`：**已落盘但不代表已质检通过**的剧本区间列表（即"写完盘上有这一批的 md 文件"），写实际集数区间，如 `001-005`。落盘 ≠ 通过——是否允许推进 `/分镜脚本` 以 `qcStatus.episodes[{range}].status == 已通过` 为唯一授权源，不以本字段为准
 - `storyboardCompletedRanges`：已完成并落盘的分镜区间列表，写实际集数区间，如 `001-005`
 - `nextScriptRange`：下一批计划写作的剧本区间；未知时留空
 - `nextStoryboardRange`：下一批计划转换的分镜区间；未知时留空
@@ -81,6 +81,8 @@
 - 区间一律写实际批次，不写模糊文字
 - 若两个相邻区间已经连续且内容稳定，可在后续更新时合并
 - 恢复现场时优先依据 `storyboardCompletedRanges` 判断是否存在"剧本已完成但分镜未完成"的缺口
+- **权威源优先级**：判断某批次能否推进下一阶段时，先看 `qcStatus.episodes[{range}].status`，再看 `scriptCompletedRanges`。若前者为 `需修改` 或 `未检查`，即使该区间已出现在 `scriptCompletedRanges` 中，也**不得**进入 `/分镜脚本`
+- **回退规则**：若 `/剧本质检` 判 `P0`，不得从 `scriptCompletedRanges` 里删除该区间（文件确实存在），但必须同步把 `qcStatus.episodes[{range}].status` 写为 `需修改`，且 `currentStep` 保持 `分集剧本` 不前进
 - `/导出` 前必须核对 `storyboardCompletedRanges` 是否覆盖全剧
 
 ## `qcStatus.episodes` 字段约定
@@ -122,24 +124,54 @@
   - `lastQcStep = "/大纲质检"`
   - `qcStatus.outline = 已通过 / 需修改`
 - `/分集剧本 {起止集}` 成功落盘后更新：
-  - `currentStep = "分集剧本"`
-  - `deliveryProgress.scriptCompletedRanges` 追加或合并对应区间
+  - `deliveryProgress.scriptCompletedRanges` 追加或合并对应区间（仅代表"已落盘"，不代表"已通过"）
   - `deliveryProgress.nextStoryboardRange` 默认指向本批次区间，除非已明确改为其他区间
+  - `currentStep` 按 §滚动生产的 currentStep 语义 重新判定（不得硬写 `分集剧本`）
 - `/剧本质检 {起止集}` 或 `/衔接质检 {起止集}` 结束后更新：
   - `lastQcStep = "/剧本质检"` 或 `"/衔接质检"`
   - `qcStatus.episodes` 追加或更新对应批次记录
+  - 通过后按 §滚动生产的 currentStep 语义 重新判定 `currentStep`
 - `/分镜脚本 {起止集}` 成功落盘后更新：
-  - `currentStep = "分镜脚本"`
   - `deliveryProgress.storyboardCompletedRanges` 追加或合并对应区间
+  - `currentStep` 按 §滚动生产的 currentStep 语义 重新判定（**不得硬写 `分镜脚本`**——若仍有下一批剧本待写，应回到 `分集剧本`）
 - `/分镜质检 {起止集}` 结束后更新：
   - `lastQcStep = "/分镜质检"`
   - `qcStatus.storyboards` 追加或更新对应批次记录
+  - 通过后按 §滚动生产的 currentStep 语义 重新判定 `currentStep`
 - `/总检` 结束后更新：
   - `lastQcStep = "/总检"`
   - `qcStatus.production = 已通过 / 需修改`
 - `/合规` 结束后更新：
   - `lastQcStep = "/合规"`
   - `qcStatus.compliance = 已通过 / 需修改`
+
+## 滚动生产的 currentStep 语义
+
+> 本 skill 默认滚动生产（批次剧本 → 批次分镜 → 下一批剧本 → 下一批分镜……），`currentStep` **不是单调前进状态机**，而是"本会话当前处于哪个生产动作里"的标签。单一命令结束时不得硬写固定值，必须按下列规则重新判定：
+
+**判定规则**（按优先级从上到下）：
+
+1. 全部区间都通过 `/合规` 且 `qcStatus.compliance == 已通过` → `currentStep = 导出`
+2. 全部区间都通过 `/总检` 且 `qcStatus.production == 已通过`，但合规未过 → `currentStep = 合规`
+3. 存在任一区间 `qcStatus.storyboards[*].status == 需修改` → `currentStep = 分镜脚本`（需修复当前批次分镜）
+4. `scriptCompletedRanges` 与 `storyboardCompletedRanges` 存在缺口，即"有某批剧本已通过质检但未转分镜"（对齐规则：`qcStatus.episodes[{r}].status == 已通过` 且 `r ∉ storyboardCompletedRanges`） → `currentStep = 分镜脚本`
+5. 存在任一区间 `qcStatus.episodes[*].status == 需修改` → `currentStep = 分集剧本`（需修复当前批次剧本）
+6. 剧本未覆盖全剧（`scriptCompletedRanges` 未覆盖 `1..episodeCount`） → `currentStep = 分集剧本`
+7. 其余情况按上游命令决定（大纲/结构/设定未完成时，取对应步骤）
+
+**触发时机**：
+
+- `/分集剧本 {起止集}` 成功落盘后：按规则 4-5-6 重新判定（可能停在 `分集剧本` 等待质检，也可能因为下一批缺口而保持 `分集剧本`）
+- `/剧本质检 {起止集}` 通过后：按规则 4 判定（通常转 `分镜脚本`）
+- `/分镜脚本 {起止集}` 成功落盘后：按规则 3-4-5-6 重新判定（**不得硬写 `分镜脚本`**——若还有下一批剧本未写，应回到 `分集剧本`）
+- `/分镜质检 {起止集}` 通过后：按规则 1-2-3-4-5-6 判定
+- 用户通过 `/复盘` 或 `/继续` 恢复现场时：全量按规则 1-7 判定
+
+**禁止模式**：
+
+- ❌ `/分镜脚本` 落盘后无脑写 `currentStep = 分镜脚本`（会遮蔽剧本批次缺口）
+- ❌ `/剧本质检` 通过后无脑写 `currentStep = 分镜脚本`（用户可能要继续写下一批剧本）
+- ❌ 以 `scriptCompletedRanges` 的最大区间直接推 `currentStep`（忽略质检状态）
 
 ## P0 与收口回退规则
 

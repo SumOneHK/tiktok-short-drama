@@ -1,0 +1,85 @@
+# ===== OS =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===== Editors / IDE =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*~
+.project
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ===== Claude Code 本地状态 =====
+.claude/
+.claude-cache/
+.claude-local/
+
+# ===== 示例产物（不要随 skill 一起发布） =====
+# 以下是跑 skill 会生成的项目级文档，属于"用户项目产物"而非 skill 本体
+# 如果此仓库根目录只放 skill，这些规则是双保险
+剧本状态.json
+选题分析.md
+故事设定.md
+故事结构.md
+分集大纲.md
+分集追踪.md
+质检检查点.md
+AI资产圣经.md
+总检报告.md
+合规报告.md
+分集剧本/
+分镜脚本/
+导出/
+
+# ===== 临时 / 备份文件 =====
+*.bak
+*.tmp
+*.temp
+*.log
+*.orig
+*.rej
+*.old
+.~*
+
+# ===== 打包 / 发布产物 =====
+dist/
+build/
+out/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# ===== 环境 / 密钥 =====
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+credentials.json
+
+# ===== Node / Python / Shell 脚本运行时（scripts/ 相关） =====
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+
+# ===== 其它 =====
+coverage/
+.nyc_output/
+*.lcov
