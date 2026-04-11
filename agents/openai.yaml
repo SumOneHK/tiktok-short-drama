@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Short Drama"
+  short_description: "从零到一生成 TikTok 竖屏短剧，并输出 AI 视频可用的分镜脚本"
+  default_prompt: "Use $tiktok-short-drama to create or continue a TikTok/overseas vertical short drama project from topic selection through episode scripts, AI-video-ready storyboard scripts, and QC."

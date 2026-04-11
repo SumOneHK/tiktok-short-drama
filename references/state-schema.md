@@ -1,0 +1,152 @@
+# 剧本状态.json Schema 与状态流转
+
+> **何时读本文件**：
+> - 首次进入 `/开始` 创建 `剧本状态.json` 时
+> - 任何命令要回写 `currentStep`、`deliveryProgress`、`qcStatus` 时
+> - 恢复现场、核对字段含义或排查状态不一致时
+>
+> 日常命令若不直接写状态字段，不需要加载本文件。SKILL.md 只保留最小 JSON 样例，字段定义与同步规则以本文件为准。
+
+## 完整 Schema
+
+```json
+{
+  "currentStep": "开始|立项|设定|结构|分集大纲|分集剧本|分镜脚本|总检|合规|导出",
+  "platform": "tiktok",
+  "mode": "overseas|domestic",
+  "languageMode": "overseas-en-dialogue|domestic-zh",
+  "targetMarket": "north-america|europe|sea|latam|middle-east|mixed",
+  "genre": [],
+  "audience": "",
+  "tone": "",
+  "endingType": "",
+  "dramaTitle": "",
+  "episodeCount": 0,
+  "episodeDurationSec": 0,
+  "emotionKeywords": [],
+  "artStyle": "",
+  "payModel": "free-only|hybrid|paywalled",
+  "paidStartEpisode": 0,
+  "deliveryProgress": {
+    "scriptCompletedRanges": [
+      "001-005"
+    ],
+    "storyboardCompletedRanges": [
+      "001-005"
+    ],
+    "nextScriptRange": "",
+    "nextStoryboardRange": ""
+  },
+  "lastQcStep": "",
+  "qcStatus": {
+    "start": "未检查|已通过|需修改",
+    "market": "未检查|已通过|需修改",
+    "bible": "未检查|已通过|需修改",
+    "architecture": "未检查|已通过|需修改",
+    "outline": "未检查|已通过|需修改",
+    "episodes": [
+      {
+        "range": "001-005",
+        "checkType": "script|continuity",
+        "status": "未检查|已通过|需修改",
+        "date": "YYYY-MM-DD",
+        "blockingIssues": [],
+        "notes": ""
+      }
+    ],
+    "storyboards": [
+      {
+        "range": "001-005",
+        "status": "未检查|已通过|需修改",
+        "date": "YYYY-MM-DD",
+        "blockingIssues": [],
+        "notes": ""
+      }
+    ],
+    "production": "未检查|已通过|需修改",
+    "compliance": "未检查|已通过|需修改"
+  }
+}
+```
+
+## `deliveryProgress` 字段约定
+
+- `scriptCompletedRanges`：已完成并落盘的剧本区间列表，写实际集数区间，如 `001-005`
+- `storyboardCompletedRanges`：已完成并落盘的分镜区间列表，写实际集数区间，如 `001-005`
+- `nextScriptRange`：下一批计划写作的剧本区间；未知时留空
+- `nextStoryboardRange`：下一批计划转换的分镜区间；未知时留空
+
+维护规则：
+
+- 区间一律写实际批次，不写模糊文字
+- 若两个相邻区间已经连续且内容稳定，可在后续更新时合并
+- 恢复现场时优先依据 `storyboardCompletedRanges` 判断是否存在"剧本已完成但分镜未完成"的缺口
+- `/导出` 前必须核对 `storyboardCompletedRanges` 是否覆盖全剧
+
+## `qcStatus.episodes` 字段约定
+
+- `range`：质检覆盖的集数区间，固定写成 `001-005`
+- `checkType`：`script` 对应 `/剧本质检`，`continuity` 对应 `/衔接质检`
+- `status`：本批次结论
+- `date`：最近一次更新日期
+- `blockingIssues`：当前仍阻塞推进的 QC ID 列表
+- `notes`：对本批次的短备注；同一 `range + checkType` 组合应更新原记录，不重复新建
+
+## `qcStatus.storyboards` 字段约定
+
+- `range`：质检覆盖的集数区间，固定写成 `001-005`
+- `status`：本批次结论
+- `date`：最近一次更新日期
+- `blockingIssues`：当前仍阻塞推进的 QC ID 列表
+- `notes`：对本批次的短备注；同一 `range` 应更新原记录，不重复新建
+
+## 状态同步规则
+
+- `/开始` 内建自检通过后更新：
+  - `lastQcStep = "/开始"`
+  - `qcStatus.start = 已通过 / 需修改`
+  - 自检通过且用户已明确选定方向时：`currentStep = 立项`
+  - 自检结果只写入 `选题分析.md` 推荐版末尾，不落盘 `质检检查点.md`
+- `/立项` 内建自检通过后更新：
+  - `lastQcStep = "/立项"`
+  - `qcStatus.market = 已通过 / 需修改`
+  - 自检通过后：`currentStep = 设定`
+  - 自检结果只写入 `选题分析.md` 正式版末尾，不落盘 `质检检查点.md`
+- `/设定质检` 结束后更新：
+  - `lastQcStep = "/设定质检"`
+  - `qcStatus.bible = 已通过 / 需修改`
+- `/结构质检` 结束后更新：
+  - `lastQcStep = "/结构质检"`
+  - `qcStatus.architecture = 已通过 / 需修改`
+- `/大纲质检` 结束后更新:
+  - `lastQcStep = "/大纲质检"`
+  - `qcStatus.outline = 已通过 / 需修改`
+- `/分集剧本 {起止集}` 成功落盘后更新：
+  - `currentStep = "分集剧本"`
+  - `deliveryProgress.scriptCompletedRanges` 追加或合并对应区间
+  - `deliveryProgress.nextStoryboardRange` 默认指向本批次区间，除非已明确改为其他区间
+- `/剧本质检 {起止集}` 或 `/衔接质检 {起止集}` 结束后更新：
+  - `lastQcStep = "/剧本质检"` 或 `"/衔接质检"`
+  - `qcStatus.episodes` 追加或更新对应批次记录
+- `/分镜脚本 {起止集}` 成功落盘后更新：
+  - `currentStep = "分镜脚本"`
+  - `deliveryProgress.storyboardCompletedRanges` 追加或合并对应区间
+- `/分镜质检 {起止集}` 结束后更新：
+  - `lastQcStep = "/分镜质检"`
+  - `qcStatus.storyboards` 追加或更新对应批次记录
+- `/总检` 结束后更新：
+  - `lastQcStep = "/总检"`
+  - `qcStatus.production = 已通过 / 需修改`
+- `/合规` 结束后更新：
+  - `lastQcStep = "/合规"`
+  - `qcStatus.compliance = 已通过 / 需修改`
+
+## P0 与收口回退规则
+
+若任一质检出现 `P0`，对应 `qcStatus` 必须记为 `需修改`，且不得推进下一阶段。
+
+若在 `/总检` 或 `/合规` 之后继续修改 `故事设定.md`、`故事结构.md`、`分集大纲.md`、`分集剧本/*.md`、`分镜脚本/*.md`、`分集追踪.md` 中任何影响内容判断的字段：
+
+- `qcStatus.production` 必须回退为 `未检查`
+- `qcStatus.compliance` 必须回退为 `未检查`
+- 必须重新执行 `/总检`，必要时再执行 `/合规`
