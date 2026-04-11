@@ -49,14 +49,14 @@ AI 写短剧最常见的三个坑：
 ```bash
 cd your-project
 mkdir -p .claude/skills
-git clone https://github.com/<your-username>/tiktok-short-drama.git .claude/skills/tiktok-short-drama
+git clone https://github.com/SumOneHK/tiktok-short-drama.git .claude/skills/tiktok-short-drama
 ```
 
 ### 方式二：作为全局 Skill
 
 ```bash
 mkdir -p ~/.claude/skills
-git clone https://github.com/<your-username>/tiktok-short-drama.git ~/.claude/skills/tiktok-short-drama
+git clone https://github.com/SumOneHK/tiktok-short-drama.git ~/.claude/skills/tiktok-short-drama
 ```
 
 装好后在 Claude Code 中打开目标项目目录，直接输入 `/开始` 即可进入 Skill。任何涉及「短剧 / 竖屏剧 / TikTok 剧 / 微短剧 / 出海剧 / 60-90 秒 AI 视频剧 / 分集大纲 / 分镜脚本 / 付费卡点」的需求都会自动路由到本 Skill，即使用户没有显式提及"skill"。
@@ -262,4 +262,3 @@ tiktok-short-drama/
 - 传统编剧结构理论（三幕式、Save the Cat、悬念债务）
 - AI 视频生产的工程化流水线（资产连续性、时长守恒、分镜粒度）
 
-短剧是工程问题，不是灵感问题。用对方法，Claude 能帮你把它做稳。
