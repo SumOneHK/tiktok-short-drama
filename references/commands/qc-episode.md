@@ -133,6 +133,24 @@
    - 被判错的对白行号与修复建议
    - **禁止**只写"已做盲测"或"盲测通过"——无证据等同未做
 
+### 样本质量硬约束（QC-015.b 沉淀 · 2026-04-12）
+
+> **背景**：E1-E3 Round 1-3 盲测出现两类"伪信号"——L02 主 agent 编造了源剧本里不存在的台词行（伪造样本），L15 把"Yes."这种单词级回答纳入盲测（信号量不足）。Round 3 为此剔除 L02+L15 才把有效准确率从 88.24% 修正到 100%。本节把这两类漏洞写成硬规则，防止后续批次重犯。
+
+**主 agent 抽样时必须遵守**：
+
+1. **台词必须 grep 回源**：每一条纳入盲测的台词，主 agent 必须用 Grep 工具从 `分集剧本/第NNN集.md` 原文读出来，保留 `{文件名, 行号, 场次 ID, 角色名}` 四字段锚点。不允许凭记忆复述、也不允许"差不多是这句"。伪造样本 = 质检直接 P0，本批次 `qcStatus.episodes = 需修改`。
+2. **单词级台词禁入盲测**：≤2 个英文单词（或中文 ≤4 字）的对白不纳入盲测样本——如 "Yes."、"No."、"I know."、"知道了"、"嗯"——这些句子任何角色都能说，信号量 = 0。抽样时自动跳过，改抽同场次下一条 ≥3 词/5 字的台词。
+3. **archetype 定义必须随 prompt 下发**：主 agent 构造盲测 prompt 时，必须把 6 个 archetype（A/B/C/D/E/F）和它们对应的匿名化声音档案一次性写进 prompt 模板，不允许子 agent 自行"发现" archetype。archetype 命名空间固定为 `A-F`，不得使用中文/职业词/性别词。
+4. **archetype ↔ 核心角色 1:1 映射**：一次盲测的 archetype 数量必须等于本批次"有≥6 轮对白"的核心角色数量，严格 1:1。不得出现"把两个角色合并成一个 archetype"或"一个角色分裂成两个 archetype"。映射表主 agent 本地留底，不下发子 agent。
+5. **盲测 prompt 必须包含 `source_line_number` 字段**：子 agent 返回的 JSON 每一条必须携带 `source_line_number`（与主 agent 抽样时锚定的行号一致），供主 agent 事后与本地映射表对照判分。缺失 `source_line_number` = 子 agent 回复无效，重抽重跑。
+6. **功能性角色不纳入 archetype**：法警、陪审团成员、法官、前台、接待员、助理、服务员等"功能性群众角色"的对白不进盲测样本，因为它们本来就没有设计独立声音档案。只有 `故事设定.md` 明确给出"说话声音档案四字段"的角色才能成为 archetype。
+
+**子 agent 回复后主 agent 必须做的校验**：
+
+- 把子 agent JSON 的每条 `source_line_number` 与主 agent 本地抽样时记录的行号逐行对照。对不上 = 子 agent 脑补出了样本外的行号，整包作废，重跑。
+- 把子 agent 判别的每条台词原文与 `分集剧本/第NNN集.md` 对应行号实际文本做字符级比对。不一致 = 主 agent 抽样时有伪造嫌疑，本批次 P0。
+
 ### 禁止清单（违反即判 P0）
 
 - 主 agent 自己在当前上下文内"盖住角色名"声称能分辨——零信号价值
@@ -140,12 +158,88 @@
 - 把本集大纲/状态差量/尾钩/写前 13 问塞给子 agent（剧情脑补污染）
 - 抽样时避开冲突场、情绪峰值场，只抽平淡对话凑数
 - 用一次抽样覆盖不到本批次全部核心角色（核心角色缺席 = 盲测无效）
+- **抽样时凭记忆复述台词或编造源剧本里不存在的行**（QC-015.b · L02 伪造样本 = 直接 P0）
+- **把 ≤2 英文单词 / ≤4 中文字的对白纳入盲测样本**（QC-015.b · L15 单词歧义 = 样本无效，重抽）
+- **子 agent 回复缺失 `source_line_number` 字段或与本地锚点行号对不上**（整包作废，重跑）
+- **把功能性角色（法警/陪审团/法官/前台/服务员）纳入 archetype 命名空间**（archetype 必须对应有声音档案四字段的核心角色）
 
 ### 与 `episode-writing-protocol.md` §五的关系
 
 - `episode-writing-protocol.md` §五定义了**写作阶段**的台词个性化要求（声音档案四字段 + 每场写完自检 3 问）
 - 本规范定义了**质检阶段**的独立评估机制（clean-context 子 agent 盲测）
 - 两者不冲突：前者是"写前看"，后者是"写后验"。质检阶段的权威判定以本规范盲测结果为准。
+
+## 修源闭环规则（E7-E9 沉淀 · 2026-04-12）
+
+> **背景**：`/剧本质检 E7-E9` 批次发现三类"修源不闭环"踩坑：
+>
+> 1. **口头 PASS 零验证**：生成 agent 写完场次时长区间后声称 "总计约 75s 覆盖目标"，但外置 Python 加法穿底（E7 56-69s / E8 58-72s 缺口 6-19s）。修源必须走外置算术，不走主 agent 口头自检。
+> 2. **outline vs script 漂移**：E8 剧本阶段把 endhook 从 outline 原稿 `"I know what I have to do" + 握拳走出书房` 升级到 `"Whatever it takes." + Gonzalez 卡 + HALLWAY →`，但 `分集大纲.md` L253 没同步。下一集 E9 生成 agent 读陈旧 outline → 元数据 P0 污染 8 处，修复需要双端 replace_all。
+> 3. **修源忘 bump version**：主 agent 修源后忘记同步 YAML frontmatter `version: 1 → 2`，导致 `/分镜脚本` 阶段 `source_episode_version` 锁失效，下游 agent 读到陈旧内容无法识别。
+
+### 硬规则
+
+1. **任何修源操作必须外置算术验证**（P0）：
+   - 涉及时长字段的修源（场次时长调整、集信息头重写）必须用 `python3 -c "print(...)"` 或 Bash 算术做外置加法验证，并把验证命令 + 输出贴在 `质检检查点.md` 修复记录中作为证据
+   - 严禁 "肉眼看起来对了" / "大概闭合" / "应该 OK" 这类口头断言
+   - 外置算术命令必须可被他人复跑（保留原样）
+
+2. **outline vs script 漂移双端同步**（P0）：
+   - 剧本阶段对以下字段的修源操作必须当场同步回 `分集大纲.md` 对应行：
+     - **结尾钩子 / endhook**（相邻集承接命脉）
+     - **开场钩子**（承接上一集命脉）
+     - **付费卡点位置 / 类型**
+     - **关键锚点台词**（Voice Print 原子）
+     - **状态差量的最终结果描述**
+   - 同步方式：先用 Grep 定位 `分集大纲.md` 对应集数的 endhook/开场钩/卡点行，再用 Edit 或 replace_all 整行重写
+   - 验证：修源后必须再 Grep 一次确认 `分集大纲.md` 中不再残留陈旧文本
+   - **跨集传染检查**：outline 漂移会通过"下一集承接上一集 outline"机制传染——修 E(N) 剧本后，必须额外 Grep 下游 3 集范围（E(N+1) ~ E(N+3)）的剧本/大纲是否引用了 E(N) 陈旧内容，若有则一并修
+   - 未同步 = `/剧本质检` 下一批次必然捕获元数据 P0，成本后推 1 批次
+
+3. **修源必 bump version**（P0）：
+   - 任何对 `分集剧本/第NNN集.md` 内容字段的修源（非格式修正）必须同步更新 YAML frontmatter：
+     - `version: N → N+1`
+     - `updated_at: YYYY-MM-DD` 更新到当天
+   - bump 完成后必须用 `grep "^version:" 分集剧本/第NNN集.md` 或 `head -10` 验证 YAML 确实已更新
+   - 漂移检查：修源闭环后，`剧本状态.json` `qcStatus.episodes[{该批次}].notes` 必须明文记录 `source_episode_version: N→N+1` 供 `/分镜脚本` 阶段锁
+   - **下游 source_episode_version 锁**：下一批 `/分镜脚本` spawn 时，prompt 必须写明源剧本 version（从 `grep "^version:"` 确认），分镜 YAML frontmatter 的 `source_episode_version` 字段必须匹配；不匹配 = P0
+   - 常见踩坑：修完剧本内容忘 bump version，分镜阶段锁失效——主 agent 必须在修源任务列表最后一条写 "bump version + 验证 grep"，不得省略
+
+4. **修源执行顺序固定**（P0）：
+   - 顺序：`源剧本修源 → bump version → grep 验证 → outline 双端同步 → 下游传染检查 → 写质检检查点.md 修复日志`
+   - **禁止乱序**：常见错误是"先 bump version 再修内容"（bump 时内容还没改，bump 了个寂寞）或 "只修剧本不修 outline"（漂移埋雷）
+   - 每一步都必须有 Bash/Grep 输出作为证据贴入 `质检检查点.md`
+
+### 违反示例 vs 合规示例
+
+**违反示例**（E7-E9 修复前一部分动作）：
+```
+Edit 第008集.md 把 "My father built this. I sign it." → "He built this. I protect this. Same thing."
+✓ 完成
+```
+问题：忘 bump version（仍是 1）+ 没 grep 验证 + 没检查 E9 是否引用 E8 旧台词 + 没写质检日志。
+
+**合规示例**：
+```bash
+# Step 1: 修源
+Edit 第008集.md: "My father built this. I sign it." → "He built this. I protect this. Same thing."
+# Step 2: bump version
+Edit 第008集.md: version: 1 → 2, updated_at: 2026-04-12
+# Step 3: grep 验证
+grep "^version:" 分集剧本/第008集.md  # → version: 2 ✓
+grep "my father" 分集剧本/第008集.md  # → 0 hits ✓
+# Step 4: outline 双端同步
+grep -n "My father built" 分集大纲.md  # 若有命中则 Edit
+# Step 5: 下游传染检查
+grep -rn "My father built this" 分集剧本/第009集.md 分集剧本/第010集.md  # 确认无污染
+# Step 6: 写修复日志
+Edit 质检检查点.md 追加 QC-SC-E8-001 修复记录（含上述 5 步输出）
+```
+
+### 与 §阻塞条件 的关系
+
+- 本节 "修源闭环" 硬规则是 `/剧本质检` 修源后的必走动作，与 §阻塞条件 的判定不冲突——阻塞条件决定 "是否要修"，本节决定 "修的时候要做什么"
+- 任一条违反都会在下一批次质检时通过元数据漂移 / version 不锁 / outline 残留重新暴露，成本后推。owner 意识是 **一次修对，不留二次成本**
 
 ## 执行要求
 
