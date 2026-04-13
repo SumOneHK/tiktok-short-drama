@@ -187,7 +187,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `references/story-engine.md` | 12.2KB | `/结构` 核心层；`/分集大纲` 只读 §按集数映射的结构骨架 + §节奏设计 段；`/分集剧本` 关键集条件层 |
 | `references/episode-writing-protocol.md` | 15.8KB | `/分集剧本` 核心层；§二写前 14 问（A 组连接 8 项 + B 组高质量自检 6 项，含信息差移动 + 时长外置算术）；§十一 时长外置算术 P0 硬规则（E7-E9 沉淀 · 禁"约 N 秒"含糊话术） |
 | `references/episode-script-templates.md` | 12.6KB | `/分集剧本` 核心层；场次头新增"场景状态差量"硬字段；§单集硬约束"关于时长"升级为"可选但给了就必须闭合"（E7-E9 沉淀） |
-| `references/storyboard-conversion.md` | 12.4KB | `/分镜脚本` 核心层；§五"时长守恒规则（权威定义）"为时长容差唯一权威源（±0.5s / ±2s 速查表） |
+| `references/storyboard-conversion.md` | ~15KB | `/分镜脚本` 核心层；§五"时长守恒规则（权威定义）"为时长容差唯一权威源（自下而上推导 · ±0.5s 闭合）；含镜头功能分类表、对白时长校准公式 |
 | `references/storyboard-script-templates.md` | 9.2KB | `/分镜脚本` 核心层；统一硬字段含 14+1 字段 P0/P1 完整度判级表（+时间线归属，含闪回项目必填） |
 | `references/continuity-ledger.md` | 5.7KB | `/分集剧本` 核心层；§五含双时间线/闪回连续性账（含闪回/失忆/穿越类项目必维护） |
 | `references/emotion-design.md` | 6.5KB | 条件层 |
