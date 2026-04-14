@@ -29,7 +29,7 @@
 
 ## 执行要求
 
-1. 默认导出定义为"制作包导出"。仅在 `总检报告.md` 与 `合规报告.md` 不存在阻塞项，且 `deliveryProgress.storyboardCompletedRanges` 已覆盖全剧时执行。
+1. **分镜覆盖率硬闸门（P0）**：默认导出定义为"制作包导出"。执行前必须交叉检查 `deliveryProgress.scriptCompletedRanges` 与 `deliveryProgress.storyboardCompletedRanges`——若存在"某批次剧本已完成但对应分镜未完成"的缺口（即 `scriptCompletedRanges` 中某区间 ∉ `storyboardCompletedRanges`），判 P0 阻塞，提示用户先完成缺失批次的 `/分镜脚本`。仅在 `总检报告.md` 与 `合规报告.md` 不存在阻塞项，且 `storyboardCompletedRanges` 已覆盖全剧时执行。
 2. 首次执行 `/导出` 时，若 `导出/` 不存在才创建。
 3. `导出/{剧名}-策划包.md` 只汇总策划、追踪、总检与合规文档，不拼接完整分集正文。
 4. `导出/{剧名}-分集剧本合集.md` 通过 `.claude/skills/tiktok-short-drama/scripts/merge_episode_scripts.sh` 单独生成。

@@ -21,6 +21,7 @@
 | `languageMode=overseas-en-dialogue` | `references/language-mode.md` |
 | 已存在 `AI资产圣经.md` 且本批次涉及角色/场景/道具叙事事实 | `AI资产圣经.md`（**只读叙事事实层，不读 prompt 层**） |
 | 本批次含关键集（强卡点/揭露/大爽点/结局） | `references/story-engine.md`（**只读 `关键集节拍设计` 章节**） |
+| 本批次含关键集或情绪曲线标注"高波动" | `references/emotion-design.md`（**只读 §单集情绪弧线 + §尾钩情绪设计**），用于预标场景级情绪目标（起/峰/收） |
 | 含超自然/奇幻能力场景 | `故事设定.md`（**只读 `能力边界` 表**），权威框架见 `references/world-character-scene.md` §能力边界设计框架 |
 | **合规前置三次筛（强制）**—— 本批次含暴力/性/危险行为/仇恨/未成年人等敏感内容 | `references/compliance-rules.md` §通用红线 + §常用安全改写法 |
 | 写完批次执行 `/剧本质检` 或 `/衔接质检` | `references/commands/qc-episode.md` 或 `references/commands/qc-link.md`（独立质检命令）+ `references/quality-gate.md` |

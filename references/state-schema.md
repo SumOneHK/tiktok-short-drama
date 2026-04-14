@@ -15,6 +15,9 @@
   "platform": "tiktok",
   "mode": "overseas|domestic",
   "languageMode": "overseas-en-dialogue|domestic-zh",
+  // ⚠️ 规范化：`mode` 是短枚举（overseas/domestic），`languageMode` 是带细节的长枚举（overseas-en-dialogue/domestic-zh）。
+  // 所有命令文件中引用时统一使用 `languageMode` 字段名 + 长枚举值。
+  // `mode` 字段仅用于 JSON 存储的简写；markdown 规则文件中出现的 `mode=overseas` 等价于 `languageMode=overseas-en-dialogue`。
   "targetMarket": "north-america|europe|sea|latam|middle-east|mixed",
   "genre": [],
   "audience": "",
