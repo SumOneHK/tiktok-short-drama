@@ -74,7 +74,7 @@
 
 ## `deliveryProgress` 字段约定
 
-- `scriptCompletedRanges`：**已落盘但不代表已质检通过**的剧本区间列表（即"写完盘上有这一批的 md 文件"），写实际集数区间，如 `001-005`。落盘 ≠ 通过——是否允许推进 `/分镜脚本` 以 `qcStatus.episodes[{range}].status == 已通过` 为唯一授权源，不以本字段为准
+- `scriptCompletedRanges`：**已落盘但不代表已质检通过**的剧本区间列表（即"写完盘上有这一批的 md 文件"），写实际集数区间，如 `001-005`。落盘 ≠ 通过——是否允许推进 `/分镜脚本` 以 `qcStatus.episodes` 中 `checkType == "script"` 且 `status == 已通过` 的 range 完整覆盖目标集数为唯一授权源，不以本字段为准
 - `storyboardCompletedRanges`：已完成并落盘的分镜区间列表，写实际集数区间，如 `001-005`
 - `nextScriptRange`：下一批计划写作的剧本区间；未知时留空
 - `nextStoryboardRange`：下一批计划转换的分镜区间；未知时留空
@@ -84,8 +84,8 @@
 - 区间一律写实际批次，不写模糊文字
 - 若两个相邻区间已经连续且内容稳定，可在后续更新时合并
 - 恢复现场时优先依据 `storyboardCompletedRanges` 判断是否存在"剧本已完成但分镜未完成"的缺口
-- **权威源优先级**：判断某批次能否推进下一阶段时，先看 `qcStatus.episodes[{range}].status`，再看 `scriptCompletedRanges`。若前者为 `需修改` 或 `未检查`，即使该区间已出现在 `scriptCompletedRanges` 中，也**不得**进入 `/分镜脚本`
-- **回退规则**：若 `/剧本质检` 判 `P0`，不得从 `scriptCompletedRanges` 里删除该区间（文件确实存在），但必须同步把 `qcStatus.episodes[{range}].status` 写为 `需修改`，且 `currentStep` 保持 `分集剧本` 不前进
+- **权威源优先级**：判断某批次能否推进下一阶段时，先看 `qcStatus.episodes` 中 `checkType == "script"` 的记录是否以 `已通过` range 完整覆盖目标集数，再看 `scriptCompletedRanges`。若目标集数存在 `需修改` 或未覆盖，即使该区间已出现在 `scriptCompletedRanges` 中，也**不得**进入 `/分镜脚本`
+- **回退规则**：若 `/剧本质检` 判 `P0`，不得从 `scriptCompletedRanges` 里删除该区间（文件确实存在），但必须同步把 `qcStatus.episodes` 中对应 `range + checkType=script` 的 `status` 写为 `需修改`，且 `currentStep` 保持 `分集剧本` 不前进
 - `/导出` 前必须核对 `storyboardCompletedRanges` 是否覆盖全剧
 
 ## `qcStatus.episodes` 字段约定
@@ -157,7 +157,7 @@
 1. 全部区间都通过 `/合规` 且 `qcStatus.compliance == 已通过` → `currentStep = 导出`
 2. 全部区间都通过 `/总检` 且 `qcStatus.production == 已通过`，但合规未过 → `currentStep = 合规`
 3. 存在任一区间 `qcStatus.storyboards[*].status == 需修改` → `currentStep = 分镜脚本`（需修复当前批次分镜）
-4. `scriptCompletedRanges` 与 `storyboardCompletedRanges` 存在缺口，即"有某批剧本已通过质检但未转分镜"（对齐规则：`qcStatus.episodes[{r}].status == 已通过` 且 `r ∉ storyboardCompletedRanges`） → `currentStep = 分镜脚本`
+4. `scriptCompletedRanges` 与 `storyboardCompletedRanges` 存在缺口，即"有某批剧本已通过质检但未转分镜"（对齐规则：`qcStatus.episodes` 中存在 `checkType == "script"` 且 `status == 已通过` 的 range，而该 range 未被 `storyboardCompletedRanges` 覆盖） → `currentStep = 分镜脚本`
 5. 存在任一区间 `qcStatus.episodes[*].status == 需修改` → `currentStep = 分集剧本`（需修复当前批次剧本）
 6. 剧本未覆盖全剧（`scriptCompletedRanges` 未覆盖 `1..episodeCount`） → `currentStep = 分集剧本`
 7. 其余情况按上游命令决定（大纲/结构/设定未完成时，取对应步骤）
