@@ -200,7 +200,7 @@
 - 阻塞条件
 - 记录要求
 
-统一以 `references/process-qc.md` 为准。
+独立质检命令的具体重点检查项与阻塞条件，以对应 `references/commands/qc-*.md` 为准；跨阶段触发时机、记录要求与推进规则，以 `references/process-qc.md` 为准。
 
 ## 回退规则
 

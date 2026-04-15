@@ -96,8 +96,8 @@
    - 分镜稿与源剧本事实是否一致，是否偷改剧情
    - 海外模式：中文是否只存在于文档说明/中译，没被误写为上屏字卡
 3. 若 `质检检查点.md` 不存在则当场创建。
-4. 出现任意 P0（时长失控 / 关键镜头缺 prompt / 分镜与剧本冲突 / 字卡越线）—— 写 `qcStatus.storyboards[{起止集}] = 需修改`；**禁止**推进到 `/总检` 或 `/导出`。
-5. 全部通过 —— 写 `qcStatus.storyboards[{起止集}] = 已通过`。
+4. 出现任意 P0（时长失控 / 关键镜头缺 prompt / 分镜与剧本冲突 / 字卡越线）—— 按 `references/state-schema.md` §`qcStatus.storyboards` 字段约定，追加或更新同一 `range` 的对象记录：`{"range":"起止集","status":"需修改","date":"YYYY-MM-DD","blockingIssues":[...],"notes":"..."}`；**禁止**推进到 `/总检` 或 `/导出`。
+5. 全部通过 —— 按同一对象数组格式写 `status = 已通过`，同一 `range` 只更新原记录，不重复新建。
 6. 长剧模式下按 `process-qc.md` §四 批次质检规则 → 长剧（40集以上）分镜质检分级 标注 A/B/C 级。
 7. 响应结构严格按 `quality-gate.md` §响应固定结构。
 8. 本命令**不**创建任何主流程产物，只更新 `质检检查点.md` 与 `qcStatus.storyboards`。

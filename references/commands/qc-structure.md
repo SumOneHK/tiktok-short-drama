@@ -49,6 +49,6 @@
 2. 按本文件 §重点检查 + §阻塞条件逐项扫描。特别关注：情绪波形、悬念债务回收路径、卡点-爽点互补、中段升级可行性。
 3. 若 `质检检查点.md` 不存在则当场创建。
 4. 出现任意 P0 —— 写 `qcStatus.architecture = 需修改`；**禁止**推进到 `/分集大纲`。
-5. 全部通过 —— 写 `qcStatus.architecture = 已通过`。
+5. 全部通过 —— 写 `qcStatus.architecture = 已通过`，并将 `currentStep = 分集大纲`。
 6. 响应结构严格按 `quality-gate.md` §响应固定结构。
-7. 本命令**不**创建任何主流程产物，只更新 `质检检查点.md` 与 `qcStatus.architecture`。
+7. 本命令**不**创建任何主流程产物，只更新 `质检检查点.md` 与 `qcStatus.architecture` / `currentStep`。

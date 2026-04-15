@@ -9,15 +9,19 @@
 
 ## 完整 Schema
 
+字段规范化：
+
+- `mode` 是短枚举：`overseas | domestic`
+- `languageMode` 是带细节的长枚举：`overseas-en-dialogue | domestic-zh`
+- 所有命令文件中引用语言细节时统一使用 `languageMode` 字段名 + 长枚举值
+- 规则文件中历史遗留的 `mode=overseas` 等价于 `languageMode=overseas-en-dialogue`
+
 ```json
 {
   "currentStep": "开始|立项|设定|结构|分集大纲|分集剧本|分镜脚本|总检|合规|导出",
   "platform": "tiktok",
   "mode": "overseas|domestic",
   "languageMode": "overseas-en-dialogue|domestic-zh",
-  // ⚠️ 规范化：`mode` 是短枚举（overseas/domestic），`languageMode` 是带细节的长枚举（overseas-en-dialogue/domestic-zh）。
-  // 所有命令文件中引用时统一使用 `languageMode` 字段名 + 长枚举值。
-  // `mode` 字段仅用于 JSON 存储的简写；markdown 规则文件中出现的 `mode=overseas` 等价于 `languageMode=overseas-en-dialogue`。
   "targetMarket": "north-america|europe|sea|latam|middle-east|mixed",
   "genre": [],
   "audience": "",
@@ -72,6 +76,49 @@
 }
 ```
 
+## 新项目初始化模板
+
+首次进入 `/开始` 创建 `剧本状态.json` 时，必须使用下面的合法 JSON 作为最小初始状态；用户尚未确认的字段保留空值或空数组，不得把推荐方案伪装成已确认值。
+
+```json
+{
+  "currentStep": "开始",
+  "platform": "tiktok",
+  "mode": "",
+  "languageMode": "",
+  "targetMarket": "",
+  "genre": [],
+  "audience": "",
+  "tone": "",
+  "endingType": "",
+  "dramaTitle": "",
+  "episodeCount": 0,
+  "episodeDurationSec": 0,
+  "emotionKeywords": [],
+  "artStyle": "",
+  "payModel": "",
+  "paidStartEpisode": 0,
+  "deliveryProgress": {
+    "scriptCompletedRanges": [],
+    "storyboardCompletedRanges": [],
+    "nextScriptRange": "",
+    "nextStoryboardRange": ""
+  },
+  "lastQcStep": "",
+  "qcStatus": {
+    "start": "未检查",
+    "market": "未检查",
+    "bible": "未检查",
+    "architecture": "未检查",
+    "outline": "未检查",
+    "episodes": [],
+    "storyboards": [],
+    "production": "未检查",
+    "compliance": "未检查"
+  }
+}
+```
+
 ## `deliveryProgress` 字段约定
 
 - `scriptCompletedRanges`：**已落盘但不代表已质检通过**的剧本区间列表（即"写完盘上有这一批的 md 文件"），写实际集数区间，如 `001-005`。落盘 ≠ 通过——是否允许推进 `/分镜脚本` 以 `qcStatus.episodes` 中 `checkType == "script"` 且 `status == 已通过` 的 range 完整覆盖目标集数为唯一授权源，不以本字段为准
@@ -120,12 +167,15 @@
 - `/设定质检` 结束后更新：
   - `lastQcStep = "/设定质检"`
   - `qcStatus.bible = 已通过 / 需修改`
+  - 通过后：`currentStep = 结构`；不通过：`currentStep = 设定`
 - `/结构质检` 结束后更新：
   - `lastQcStep = "/结构质检"`
   - `qcStatus.architecture = 已通过 / 需修改`
+  - 通过后：`currentStep = 分集大纲`；不通过：`currentStep = 结构`
 - `/大纲质检` 结束后更新:
   - `lastQcStep = "/大纲质检"`
   - `qcStatus.outline = 已通过 / 需修改`
+  - 通过后：`currentStep = 分集剧本`；不通过：`currentStep = 分集大纲`
 - `/分集剧本 {起止集}` 成功落盘后更新：
   - `deliveryProgress.scriptCompletedRanges` 追加或合并对应区间（仅代表"已落盘"，不代表"已通过"）
   - `deliveryProgress.nextStoryboardRange` 默认指向本批次区间，除非已明确改为其他区间
@@ -157,18 +207,21 @@
 1. 全部区间都通过 `/合规` 且 `qcStatus.compliance == 已通过` → `currentStep = 导出`
 2. 全部区间都通过 `/总检` 且 `qcStatus.production == 已通过`，但合规未过 → `currentStep = 合规`
 3. 存在任一区间 `qcStatus.storyboards[*].status == 需修改` → `currentStep = 分镜脚本`（需修复当前批次分镜）
-4. `scriptCompletedRanges` 与 `storyboardCompletedRanges` 存在缺口，即"有某批剧本已通过质检但未转分镜"（对齐规则：`qcStatus.episodes` 中存在 `checkType == "script"` 且 `status == 已通过` 的 range，而该 range 未被 `storyboardCompletedRanges` 覆盖） → `currentStep = 分镜脚本`
-5. 存在任一区间 `qcStatus.episodes[*].status == 需修改` → `currentStep = 分集剧本`（需修复当前批次剧本）
-6. 剧本未覆盖全剧（`scriptCompletedRanges` 未覆盖 `1..episodeCount`） → `currentStep = 分集剧本`
-7. 其余情况按上游命令决定（大纲/结构/设定未完成时，取对应步骤）
+4. 存在已落盘分镜区间但未被 `qcStatus.storyboards[*].status == 已通过` 的 range 覆盖 → `currentStep = 分镜脚本`（需补 `/分镜质检` 或修复分镜）
+5. `scriptCompletedRanges` 与 `storyboardCompletedRanges` 存在缺口，即"有某批剧本已通过质检但未转分镜"（对齐规则：`qcStatus.episodes` 中存在 `checkType == "script"` 且 `status == 已通过` 的 range，而该 range 未被 `storyboardCompletedRanges` 覆盖） → `currentStep = 分镜脚本`
+6. 存在任一区间 `qcStatus.episodes[*].status == 需修改` → `currentStep = 分集剧本`（需修复当前批次剧本）
+7. 存在已落盘剧本区间但未被 `qcStatus.episodes[*]` 中 `checkType == "script"` 且 `status == 已通过` 的 range 覆盖 → `currentStep = 分集剧本`（需补 `/剧本质检` 或修复剧本）
+8. 剧本未覆盖全剧（`scriptCompletedRanges` 未覆盖 `1..episodeCount`） → `currentStep = 分集剧本`
+9. 上游门禁未通过时按最早未通过阶段回退：`qcStatus.outline != 已通过` → `分集大纲`；`qcStatus.architecture != 已通过` → `结构`；`qcStatus.bible != 已通过` → `设定`；`qcStatus.market != 已通过` → `立项`
+10. 其余情况按上游命令决定
 
 **触发时机**：
 
-- `/分集剧本 {起止集}` 成功落盘后：按规则 4-5-6 重新判定（可能停在 `分集剧本` 等待质检，也可能因为下一批缺口而保持 `分集剧本`）
-- `/剧本质检 {起止集}` 通过后：按规则 4 判定（通常转 `分镜脚本`）
-- `/分镜脚本 {起止集}` 成功落盘后：按规则 3-4-5-6 重新判定（**不得硬写 `分镜脚本`**——若还有下一批剧本未写，应回到 `分集剧本`）
-- `/分镜质检 {起止集}` 通过后：按规则 1-2-3-4-5-6 判定
-- 用户通过 `/复盘` 或 `/继续` 恢复现场时：全量按规则 1-7 判定
+- `/分集剧本 {起止集}` 成功落盘后：按规则 5-8 重新判定（通常停在 `分集剧本` 等待 `/剧本质检`，不得因文件已落盘而进入分镜）
+- `/剧本质检 {起止集}` 通过后：按规则 5-8 判定（若本批次已通过且尚未转分镜，通常转 `分镜脚本`）
+- `/分镜脚本 {起止集}` 成功落盘后：按规则 3-8 重新判定（**不得硬写 `分镜脚本`**——若还有下一批剧本未写，应回到 `分集剧本`）
+- `/分镜质检 {起止集}` 通过后：按规则 1-10 判定
+- 用户通过 `/复盘` 或 `/继续` 恢复现场时：全量按规则 1-10 判定
 
 **禁止模式**：
 

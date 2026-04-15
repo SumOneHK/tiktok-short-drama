@@ -150,7 +150,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 ## 过程质检命令
 
-过程质检命令与主流程命令正交。每条质检命令都有自包含说明书 `references/commands/qc-{阶段}.md`，进入命令后**只读对应命令文件即可**，不需要再回 `SKILL.md` 查加载规则。详细检查项以 `references/process-qc.md` §三对应段为准；记录格式以 `references/templates/qc-checkpoint.md` 为准。
+过程质检命令与主流程命令正交。每条质检命令都有自包含说明书 `references/commands/qc-{阶段}.md`，进入命令后**只读对应命令文件即可**，不需要再回 `SKILL.md` 查加载规则。独立质检的详细检查项以对应 `qc-*.md` 为准；跨阶段批次规则、记录要求和推进规则以 `references/process-qc.md` 为准；记录格式以 `references/templates/qc-checkpoint.md` 为准。
 
 | 命令 | 说明书 | 主要检查对象 | 推进门槛 |
 |------|--------|-------------|---------|
@@ -168,6 +168,23 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 3. 任何质检出现 `P0`，对应 `qcStatus` 必须记为 `需修改`，禁止推进下一阶段。
 4. `质检检查点.md` 中的问题要保持同一 ID 跟踪到底；修复后更新原状态，不重复新建。
 5. 各质检命令**不**创建任何主流程产物，只追加/更新 `质检检查点.md` 与对应 `qcStatus` 字段。
+
+## 不可绕过的阶段门禁
+
+生产命令只负责生成或更新本阶段产物；阶段推进权限只看 `剧本状态.json.qcStatus`。不得用"内建自检通过"替代独立质检。
+
+| 目标命令 | 必须满足 |
+|---------|----------|
+| `/设定` | `qcStatus.market = 已通过` |
+| `/结构` | `qcStatus.bible = 已通过` |
+| `/分集大纲` | `qcStatus.architecture = 已通过` |
+| `/分集剧本 {起止集}` | `qcStatus.outline = 已通过` |
+| `/分镜脚本 {起止集}` | 目标集数被 `qcStatus.episodes` 中 `checkType=script` 且 `status=已通过` 的 range 完整覆盖 |
+| `/总检` | 已完成范围内不存在 `qcStatus.episodes/storyboards.status = 需修改`；制作包总检还要求分镜已覆盖目标交付范围 |
+| `/合规` | `qcStatus.production = 已通过` |
+| `/导出` | `qcStatus.production = 已通过` 且 `qcStatus.compliance = 已通过`；默认制作包还要求 `storyboardCompletedRanges` 覆盖全剧 |
+
+若门禁不满足，必须回退到对应生产或质检命令，不得靠手工改 `currentStep` 推进。
 
 ## 参考文件加载策略
 

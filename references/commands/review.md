@@ -48,6 +48,6 @@
    - **裸分镜集 / 源剧本过时**：遍历每个已落盘分镜稿，读取其 YAML frontmatter 的 `source_episode_version`，与对应 `分集剧本/第NNN集.md` frontmatter 的 `version` 字段严格比对。不一致 = 剧本已更新但分镜未重做，判 `P0`，列入"需重做分镜"清单。`version` frontmatter 字段口径见 `references/episode-script-templates.md` 与 `references/storyboard-script-templates.md`
    - **frontmatter 缺失**：任一 `分集剧本/*.md` 缺 `version` 或任一 `分镜脚本/*.md` 缺 `source_episode_version` = `P0`，本身就阻塞 `/总检` 通过
    - **交错空洞**：若存在 "第 1-5 集有剧本没分镜 / 第 6-10 集有分镜没剧本" 这种非单调推进模式，判 `P1` 并在报告中标红提示
-   同时核对 `qcStatus.episodes[*]` 和 `qcStatus.storyboards[*]`：任一集仍为 `需修改` 状态 = `P0` 阻塞 `/总检` 通过。
+   同时核对 `qcStatus.episodes[*]` 和 `qcStatus.storyboards[*]`：任一集仍为 `需修改` 状态 = `P0` 阻塞 `/总检` 通过。若本次总检目标是默认制作包，还必须确认已完成分镜范围被 `qcStatus.storyboards` 中 `status=已通过` 的 range 覆盖；缺失分镜质检记录 = P0，先补 `/分镜质检 {缺失区间}`。
 7. 首次进入 `/总检` 时，若 `总检报告.md` 不存在才创建；不要提前创建 `合规报告.md` 或 `导出/`。
 8. 未处理的 `P0` 仍然阻塞 `/合规` 与 `/导出`。
