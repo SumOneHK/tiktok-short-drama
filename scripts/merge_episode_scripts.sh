@@ -4,6 +4,7 @@ set -euo pipefail
 source_dir="分集剧本"
 output_path=""
 title=""
+public_clean=false
 
 extract_episode_number() {
   local file_name
@@ -26,7 +27,48 @@ usage() {
   1. 如果不传具体文件，则会合并 source-dir 下全部 .md 文件。
   2. 如果传入文件列表，则按传入顺序合并。
   3. 默认 source-dir 为当前项目下的 `分集剧本/`。
+  4. 传入 --public-clean 时，去除 YAML frontmatter、写前检查 HTML 注释和源文件注释，生成对外清稿。
 EOF
+}
+
+emit_file() {
+  local file="$1"
+
+  if [[ "$public_clean" != true ]]; then
+    cat "$file"
+    return 0
+  fi
+
+  awk '
+    NR == 1 && $0 == "---" {
+      in_frontmatter = 1
+      next
+    }
+    in_frontmatter && $0 == "---" {
+      in_frontmatter = 0
+      next
+    }
+    in_frontmatter {
+      next
+    }
+    /<!-- 写前检查答案/ || /<!-- 写前14问答案/ {
+      in_check_comment = 1
+      next
+    }
+    in_check_comment && /-->/ {
+      in_check_comment = 0
+      next
+    }
+    in_check_comment {
+      next
+    }
+    /^<!-- 源文件：/ {
+      next
+    }
+    {
+      print
+    }
+  ' "$file"
 }
 
 files=()
@@ -44,6 +86,10 @@ while [[ $# -gt 0 ]]; do
     --title)
       title="$2"
       shift 2
+      ;;
+    --public-clean)
+      public_clean=true
+      shift
       ;;
     -h|--help)
       usage
@@ -106,8 +152,10 @@ mkdir -p "$(dirname "$output_path")"
   if [[ -n "$title" ]]; then
     printf '# %s\n\n' "$title"
   fi
-  printf '<!-- 由 scripts/merge_episode_scripts.sh 自动生成，请勿手工逐段拼接 -->\n\n'
-  printf '> 合并时间：%s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+  if [[ "$public_clean" != true ]]; then
+    printf '<!-- 由 scripts/merge_episode_scripts.sh 自动生成，请勿手工逐段拼接 -->\n\n'
+    printf '> 合并时间：%s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+  fi
 
   for file in "${files[@]}"; do
     if [[ ! -f "$file" ]]; then
@@ -115,8 +163,10 @@ mkdir -p "$(dirname "$output_path")"
       exit 1
     fi
 
-    printf '\n<!-- 源文件：%s -->\n\n' "$file"
-    cat "$file"
+    if [[ "$public_clean" != true ]]; then
+      printf '\n<!-- 源文件：%s -->\n\n' "$file"
+    fi
+    emit_file "$file"
     printf '\n'
   done
 } > "$output_path"

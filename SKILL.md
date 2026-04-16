@@ -131,6 +131,8 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 短剧创作 13 条核心原则（验证为先、合并设计、悬念是债务、情绪工程、复杂度服务质量等）写在 `references/philosophy.md`。在做架构决策、判断 P0、向用户解释取舍时按需精读，不需要每次进命令都加载。
 
+`references/viewer-payoff-contract.md` 是观看回报最高层契约：当“逻辑完整 / 专业正确 / 证据链闭合”和“观众即时回报”冲突时，先修观看回报，再修逻辑表达。`/结构`、`/分集大纲`、`/分集剧本` 与对应质检命令必须加载它；不得用状态差量、编号递增、时长算术或专业术语替代短剧回报。
+
 ## 命令索引
 
 每条命令都有自包含说明书 `references/commands/{命令}.md`。进入命令后**只读对应命令文件即可**，不需要再回 `SKILL.md` 查加载规则。
@@ -201,8 +203,9 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `references/start-topic-pool.md` | 6.5KB | `/开始` 核心层 |
 | `references/market-analysis.md` | 5.6KB（模板已下沉） | `/开始` 核心层（方法论）；模板实体在 `templates/topic-start.md` / `templates/topic-proposal.md` |
 | `references/world-character-scene.md` | 10.0KB | `/设定` 核心层 |
+| `references/viewer-payoff-contract.md` | ~8KB | `/结构`、`/分集大纲`、`/分集剧本` 与对应质检核心层；定义观看回报优先级、证据型故事、冷静型主角、双时间线、尾钩、角色实体锁 |
 | `references/story-engine.md` | 12.2KB | `/结构` 核心层；`/分集大纲` 只读 §按集数映射的结构骨架 + §节奏设计 段；`/分集剧本` 关键集条件层 |
-| `references/episode-writing-protocol.md` | 15.8KB | `/分集剧本` 核心层；§二写前 14 问（A 组连接 8 项 + B 组高质量自检 6 项，含信息差移动 + 时长外置算术）；§十一 时长外置算术 P0 硬规则（E7-E9 沉淀，禁"约 N 秒"含糊话术） |
+| `references/episode-writing-protocol.md` | 15.8KB | `/分集剧本` 核心层；§二写前检查（A 组连接 8 项 + B 组高质量自检 6 项 + C 组短剧观众体验 7 项，含信息差移动、时长外置算术、可视化打脸和尾钩具象）；§十一 时长外置算术 P0 硬规则（E7-E9 沉淀，禁"约 N 秒"含糊话术） |
 | `references/episode-script-templates.md` | 12.6KB | `/分集剧本` 核心层；场次头新增"场景状态差量"硬字段；§单集硬约束"关于时长"升级为"可选但给了就必须闭合"（E7-E9 沉淀） |
 | `references/storyboard-conversion.md` | ~15KB | `/分镜脚本` 核心层；§五"时长守恒规则（权威定义）"为时长容差唯一权威源（自下而上推导 · ±0.5s 闭合）；含镜头功能分类表、对白时长校准公式 |
 | `references/storyboard-script-templates.md` | 9.2KB | `/分镜脚本` 核心层；统一硬字段 P0/P1 完整度判级表（含时间线归属，闪回项目必填） |
