@@ -24,6 +24,7 @@
 | 触发条件 | 读取文件 |
 |---------|---------|
 | 预埋 AI 生产字段（制作锚点、artStyle） | `references/ai-production.md`（**只读 §二 制作锚点最低字段、§三 artStyle 与统一交付管线**。`AI资产圣经.md` **不**在 `/设定` 阶段落盘） |
+| 主角/男主/女主/核心反派显得模板化，或需要设计首次亮相高光 | `references/script-quality-engine.md` §六 主角反差与出场 |
 | `mode=overseas`（需要本地化替换、英文展示名） | `references/language-mode.md` |
 | 设定阶段需确认 TikTok 竖屏平台约束 | `references/tiktok-platform-constraints.md`（只读视觉/节奏/本地化段） |
 | **合规前置二次筛（强制）**—— 若 `选题分析.md` 正式版已标注黄色高风险 / 世界观或角色含通用红线可能触及点 | `references/compliance-rules.md` §通用红线 + §`mode=overseas` 审核重点 + §常用安全改写法 |

@@ -204,9 +204,10 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `references/market-analysis.md` | 5.6KB（模板已下沉） | `/开始` 核心层（方法论）；模板实体在 `templates/topic-start.md` / `templates/topic-proposal.md` |
 | `references/world-character-scene.md` | 10.0KB | `/设定` 核心层 |
 | `references/viewer-payoff-contract.md` | ~8KB | `/结构`、`/分集大纲`、`/分集剧本` 与对应质检核心层；定义观看回报优先级、证据型故事、冷静型主角、双时间线、尾钩、角色实体锁 |
+| `references/script-quality-engine.md` | ~8KB | `/结构`、`/分集大纲`、`/分集剧本` 与对应质检按段加载；整合 writing 知识库的三密度、3/15/45 节奏、钩子、拉扯、主角出场、展示式对白和画面感 |
 | `references/story-engine.md` | 12.2KB | `/结构` 核心层；`/分集大纲` 只读 §按集数映射的结构骨架 + §节奏设计 段；`/分集剧本` 关键集条件层 |
-| `references/episode-writing-protocol.md` | 15.8KB | `/分集剧本` 核心层；§二写前检查（A 组连接 8 项 + B 组高质量自检 6 项 + C 组短剧观众体验 7 项，含信息差移动、时长外置算术、可视化打脸和尾钩具象）；§十一 时长外置算术 P0 硬规则（E7-E9 沉淀，禁"约 N 秒"含糊话术） |
-| `references/episode-script-templates.md` | 12.6KB | `/分集剧本` 核心层；场次头新增"场景状态差量"硬字段；§单集硬约束"关于时长"升级为"可选但给了就必须闭合"（E7-E9 沉淀） |
+| `references/episode-writing-protocol.md` | 15.8KB | `/分集剧本` 核心层；§二写前检查（A 组连接 8 项 + B 组高质量自检 6 项 + C 组短剧观众体验 7 项 + D 组密度与表现 5 项，含信息差移动、时长外置算术、三密度、节奏锚、可视化打脸和尾钩具象）；§十一 时长外置算术 P0 硬规则（E7-E9 沉淀，禁"约 N 秒"含糊话术） |
+| `references/episode-script-templates.md` | 12.6KB | `/分集剧本` 核心层；场次头新增"场景状态差量"硬字段；集信息新增三密度、节奏锚、钩子/拉扯、展示式表达字段；§单集硬约束"关于时长"升级为"可选但给了就必须闭合"（E7-E9 沉淀） |
 | `references/storyboard-conversion.md` | ~15KB | `/分镜脚本` 核心层；§五"时长守恒规则（权威定义）"为时长容差唯一权威源（自下而上推导 · ±0.5s 闭合）；含镜头功能分类表、对白时长校准公式 |
 | `references/storyboard-script-templates.md` | 9.2KB | `/分镜脚本` 核心层；统一硬字段 P0/P1 完整度判级表（含时间线归属，闪回项目必填） |
 | `references/continuity-ledger.md` | 5.7KB | `/分集剧本` 核心层；§五含双时间线/闪回连续性账（含闪回/失忆/穿越类项目必维护） |
