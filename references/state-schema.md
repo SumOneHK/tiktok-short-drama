@@ -18,6 +18,12 @@
 
 ```json
 {
+  "project": {
+    "directoryName": "",
+    "displayTitle": "",
+    "createdAt": "YYYY-MM-DD",
+    "workspaceMode": "multi-drama"
+  },
   "currentStep": "开始|立项|设定|结构|分集大纲|分集剧本|分镜脚本|总检|合规|导出",
   "platform": "tiktok",
   "mode": "overseas|domestic",
@@ -82,6 +88,12 @@
 
 ```json
 {
+  "project": {
+    "directoryName": "",
+    "displayTitle": "",
+    "createdAt": "YYYY-MM-DD",
+    "workspaceMode": "multi-drama"
+  },
   "currentStep": "开始",
   "platform": "tiktok",
   "mode": "",
@@ -154,6 +166,11 @@
 
 ## 状态同步规则
 
+- `/开始` 新建剧本目录时更新：
+  - `project.directoryName = ACTIVE_DRAMA_DIR` 的目录名
+  - `project.createdAt = YYYY-MM-DD`
+  - `project.workspaceMode = multi-drama`
+  - 若已有临时或正式标题，`project.displayTitle` 可同步写入；未确认时留空
 - `/开始` 内建自检通过后更新：
   - `lastQcStep = "/开始"`
   - `qcStatus.start = 已通过 / 需修改`
@@ -162,6 +179,7 @@
 - `/立项` 内建自检通过后更新：
   - `lastQcStep = "/立项"`
   - `qcStatus.market = 已通过 / 需修改`
+  - 若正式剧名已确认，同步写入 `dramaTitle` 与 `project.displayTitle`
   - 自检通过后：`currentStep = 设定`
   - 自检结果只写入 `选题分析.md` 正式版末尾，不落盘 `质检检查点.md`
 - `/设定质检` 结束后更新：

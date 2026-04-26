@@ -10,6 +10,10 @@
 
 **核心层（每次进入 `/设定` 必读）：**
 
+工作区定位：
+
+- `references/workspace-projects.md` — 解析 `ACTIVE_DRAMA_DIR`；本命令所有业务文件都从该目录读写
+
 业务数据文件：
 
 - `选题分析.md` — 作为设定展开的方向依据

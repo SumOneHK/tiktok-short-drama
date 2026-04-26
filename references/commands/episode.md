@@ -8,8 +8,9 @@
 
 ## 分层加载规则
 
-**核心层（每次进入 `/分集剧本` 必读，共 5 个）：**
+**核心层（每次进入 `/分集剧本` 必读，共 6 个）：**
 
+- `references/workspace-projects.md` — 解析 `ACTIVE_DRAMA_DIR`；本命令所有业务文件都从该目录读写
 - `references/viewer-payoff-contract.md` — 单集观看回报、专业信息转译、冷静型主角情绪外化、双时间线碰撞
 - `references/script-quality-engine.md` — 三密度、3/15/45 节奏、钩子、拉扯、主角反差/出场、展示式对白和画面感
 - `references/episode-writing-protocol.md` — 写前检查、A/B 组 14 问、C 组观众体验 7 项、D 组密度与表现 5 项、名字/台词/逻辑/衔接/回填规则

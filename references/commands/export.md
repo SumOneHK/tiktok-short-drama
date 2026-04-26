@@ -10,6 +10,10 @@
 
 **核心层（每次进入 `/导出` 必读）：**
 
+工作区定位：
+
+- `references/workspace-projects.md` — 解析 `ACTIVE_DRAMA_DIR`；本命令所有业务文件都从该目录读写
+
 业务数据文件：
 
 - `总检报告.md` — 验证未闭环 P0 项
@@ -33,7 +37,7 @@
 2. **分镜覆盖率硬闸门（P0）**：默认导出定义为"制作包导出"。执行前必须交叉检查 `deliveryProgress.scriptCompletedRanges` 与 `deliveryProgress.storyboardCompletedRanges`——若存在"某批次剧本已完成但对应分镜未完成"的缺口（即 `scriptCompletedRanges` 中某区间 ∉ `storyboardCompletedRanges`），判 P0 阻塞，提示用户先完成缺失批次的 `/分镜脚本`。同时必须确认全剧分镜范围被 `qcStatus.storyboards` 中 `status=已通过` 的 range 覆盖；缺失分镜质检记录 = P0，提示用户先补 `/分镜质检 {缺失区间}`。仅在 `storyboardCompletedRanges` 与分镜质检通过记录均覆盖全剧时执行默认制作包导出。
 3. 首次执行 `/导出` 时，若 `导出/` 不存在才创建。
 4. `导出/{剧名}-策划包.md` 只汇总策划、追踪、总检与合规文档，不拼接完整分集正文。
-5. `导出/{剧名}-分集剧本合集.md` 通过 `.claude/skills/tiktok-short-drama/scripts/merge_episode_scripts.sh --public-clean` 单独生成。默认对外协作包必须是清稿，不得包含 YAML frontmatter、写前检查 HTML 注释、质检状态、源文件注释等内部生产痕迹；若用户明确要求“内部审阅版/带质检留痕版”，才允许不加 `--public-clean`。
+5. `导出/{剧名}-分集剧本合集.md` 通过 skill 目录下的 `scripts/merge_episode_scripts.sh --public-clean` 单独生成；执行时建议以 `ACTIVE_DRAMA_DIR` 为 working directory，或显式传入 `ACTIVE_DRAMA_DIR/分集剧本` 与 `ACTIVE_DRAMA_DIR/导出/...`。默认对外协作包必须是清稿，不得包含 YAML frontmatter、写前检查 HTML 注释、质检状态、源文件注释等内部生产痕迹；若用户明确要求“内部审阅版/带质检留痕版”，才允许不加 `--public-clean`。
 6. `导出/{剧名}-分镜脚本合集.md` 通过同一脚本、指定 `--source-dir 分镜脚本 --public-clean` 单独生成；缺少全剧覆盖的 `分镜脚本/` 时，禁止按默认制作包定义导出。
 7. 若用户明确只要"编剧包"或"非制作包"，可跳过分镜合集，但必须在交付说明中明确写明"未包含 AI 视频制作分镜稿，不构成完整制作包"。
 8. 若用户明确要求"单文件全量包"，再额外生成；默认导出定义以本节和 `references/ai-production.md` §十 为准。
@@ -42,13 +46,13 @@
 ## 脚本示例
 
 ```bash
-.claude/skills/tiktok-short-drama/scripts/merge_episode_scripts.sh \
+{skill目录}/scripts/merge_episode_scripts.sh \
   --source-dir 分集剧本 \
   --output 导出/剧名-分集剧本合集.md \
   --title "剧名 分集剧本合集" \
   --public-clean
 
-.claude/skills/tiktok-short-drama/scripts/merge_episode_scripts.sh \
+{skill目录}/scripts/merge_episode_scripts.sh \
   --source-dir 分镜脚本 \
   --output 导出/剧名-分镜脚本合集.md \
   --title "剧名 分镜脚本合集" \

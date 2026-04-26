@@ -10,6 +10,7 @@
 
 **核心层（每次进入 `/结构质检` 必读）：**
 
+- `references/workspace-projects.md` — 解析 `ACTIVE_DRAMA_DIR`；本命令所有业务文件都从该目录读写
 - 本文件 §重点检查 + §阻塞条件（闸门规则已内嵌，**不需要再读 process-qc.md §三**）
 - `references/state-schema.md` §状态同步规则 —— `/结构质检` 回写 `qcStatus.architecture` 字段的规则
 - `references/quality-gate.md` §响应固定结构
