@@ -60,7 +60,7 @@
     "episodes": [
       {
         "range": "001-005",
-        "checkType": "script|continuity",
+        "checkType": "script|continuity|full-read",
         "status": "未检查|已通过|需修改",
         "date": "YYYY-MM-DD",
         "blockingIssues": [],
@@ -145,12 +145,13 @@
 - 恢复现场时优先依据 `storyboardCompletedRanges` 判断是否存在"剧本已完成但分镜未完成"的缺口
 - **权威源优先级**：判断某批次能否推进下一阶段时，先看 `qcStatus.episodes` 中 `checkType == "script"` 的记录是否以 `已通过` range 完整覆盖目标集数，再看 `scriptCompletedRanges`。若目标集数存在 `需修改` 或未覆盖，即使该区间已出现在 `scriptCompletedRanges` 中，也**不得**进入 `/分镜脚本`
 - **回退规则**：若 `/剧本质检` 判 `P0`，不得从 `scriptCompletedRanges` 里删除该区间（文件确实存在），但必须同步把 `qcStatus.episodes` 中对应 `range + checkType=script` 的 `status` 写为 `需修改`，且 `currentStep` 保持 `分集剧本` 不前进
+- 若 `/整剧通读` 判 `P0/P1` 且阻塞分镜，不得删除任何已落盘剧本区间；必须把覆盖全剧的 `range + checkType=full-read` 写为 `需修改`，并把需要修源的具体 `script` 批次回退为 `未检查` 或 `需修改`
 - `/导出` 前必须核对 `storyboardCompletedRanges` 是否覆盖全剧
 
 ## `qcStatus.episodes` 字段约定
 
 - `range`：质检覆盖的集数区间，固定写成 `001-005`
-- `checkType`：`script` 对应 `/剧本质检`，`continuity` 对应 `/衔接质检`
+- `checkType`：`script` 对应 `/剧本质检`，`continuity` 对应 `/衔接质检`，`full-read` 对应 `/整剧通读`
 - `status`：本批次结论
 - `date`：最近一次更新日期
 - `blockingIssues`：当前仍阻塞推进的 QC ID 列表
@@ -198,9 +199,10 @@
   - `deliveryProgress.scriptCompletedRanges` 追加或合并对应区间（仅代表"已落盘"，不代表"已通过"）
   - `deliveryProgress.nextStoryboardRange` 默认指向本批次区间，除非已明确改为其他区间
   - `currentStep` 按 §滚动生产的 currentStep 语义 重新判定（不得硬写 `分集剧本`）
-- `/剧本质检 {起止集}` 或 `/衔接质检 {起止集}` 结束后更新：
-  - `lastQcStep = "/剧本质检"` 或 `"/衔接质检"`
+- `/剧本质检 {起止集}`、`/衔接质检 {起止集}` 或 `/整剧通读` 结束后更新：
+  - `lastQcStep = "/剧本质检"`、`"/衔接质检"` 或 `"/整剧通读"`
   - `qcStatus.episodes` 追加或更新对应批次记录
+  - `/整剧通读` 的 `range` 必须覆盖全剧，如 `001-048`，`checkType = "full-read"`；若通读要求修源，必须同步把受影响 `checkType=script` 批次回退为 `未检查` 或 `需修改`
   - 通过后按 §滚动生产的 currentStep 语义 重新判定 `currentStep`
 - `/分镜脚本 {起止集}` 成功落盘后更新：
   - `deliveryProgress.storyboardCompletedRanges` 追加或合并对应区间
@@ -226,25 +228,27 @@
 2. 全部区间都通过 `/总检` 且 `qcStatus.production == 已通过`，但合规未过 → `currentStep = 合规`
 3. 存在任一区间 `qcStatus.storyboards[*].status == 需修改` → `currentStep = 分镜脚本`（需修复当前批次分镜）
 4. 存在已落盘分镜区间但未被 `qcStatus.storyboards[*].status == 已通过` 的 range 覆盖 → `currentStep = 分镜脚本`（需补 `/分镜质检` 或修复分镜）
-5. `scriptCompletedRanges` 与 `storyboardCompletedRanges` 存在缺口，即"有某批剧本已通过质检但未转分镜"（对齐规则：`qcStatus.episodes` 中存在 `checkType == "script"` 且 `status == 已通过` 的 range，而该 range 未被 `storyboardCompletedRanges` 覆盖） → `currentStep = 分镜脚本`
-6. 存在任一区间 `qcStatus.episodes[*].status == 需修改` → `currentStep = 分集剧本`（需修复当前批次剧本）
-7. 存在已落盘剧本区间但未被 `qcStatus.episodes[*]` 中 `checkType == "script"` 且 `status == 已通过` 的 range 覆盖 → `currentStep = 分集剧本`（需补 `/剧本质检` 或修复剧本）
-8. 剧本未覆盖全剧（`scriptCompletedRanges` 未覆盖 `1..episodeCount`） → `currentStep = 分集剧本`
-9. 上游门禁未通过时按最早未通过阶段回退：`qcStatus.outline != 已通过` → `分集大纲`；`qcStatus.architecture != 已通过` → `结构`；`qcStatus.bible != 已通过` → `设定`；`qcStatus.market != 已通过` → `立项`
-10. 其余情况按上游命令决定
+5. 全剧分集剧本已落盘且 `checkType=script` 已通过覆盖 `1..episodeCount`，但不存在覆盖全剧的 `checkType=full-read` 且 `status=已通过` 记录 → `currentStep = 分集剧本`（需执行 `/整剧通读` 或修复通读问题）
+6. `scriptCompletedRanges` 与 `storyboardCompletedRanges` 存在缺口，即"有某批剧本已通过质检但未转分镜"（对齐规则：`qcStatus.episodes` 中存在 `checkType == "script"` 且 `status == 已通过` 的 range，而该 range 未被 `storyboardCompletedRanges` 覆盖；若全剧剧本已完成，还要求 `checkType == "full-read"` 已通过覆盖全剧） → `currentStep = 分镜脚本`
+7. 存在任一区间 `qcStatus.episodes[*].status == 需修改` → `currentStep = 分集剧本`（需修复当前批次剧本或整剧通读问题）
+8. 存在已落盘剧本区间但未被 `qcStatus.episodes[*]` 中 `checkType == "script"` 且 `status == 已通过` 的 range 覆盖 → `currentStep = 分集剧本`（需补 `/剧本质检` 或修复剧本）
+9. 剧本未覆盖全剧（`scriptCompletedRanges` 未覆盖 `1..episodeCount`） → `currentStep = 分集剧本`
+10. 上游门禁未通过时按最早未通过阶段回退：`qcStatus.outline != 已通过` → `分集大纲`；`qcStatus.architecture != 已通过` → `结构`；`qcStatus.bible != 已通过` → `设定`；`qcStatus.market != 已通过` → `立项`
+11. 其余情况按上游命令决定
 
 **触发时机**：
 
-- `/分集剧本 {起止集}` 成功落盘后：按规则 5-8 重新判定（通常停在 `分集剧本` 等待 `/剧本质检`，不得因文件已落盘而进入分镜）
-- `/剧本质检 {起止集}` 通过后：按规则 5-8 判定（若本批次已通过且尚未转分镜，通常转 `分镜脚本`）
-- `/分镜脚本 {起止集}` 成功落盘后：按规则 3-8 重新判定（**不得硬写 `分镜脚本`**——若还有下一批剧本未写，应回到 `分集剧本`）
-- `/分镜质检 {起止集}` 通过后：按规则 1-10 判定
-- 用户通过 `/复盘` 或 `/继续` 恢复现场时：全量按规则 1-10 判定
+- `/分集剧本 {起止集}` 成功落盘后：按规则 5-9 重新判定（通常停在 `分集剧本` 等待 `/剧本质检`；若全剧完成且批次剧本质检全通过，则继续等待 `/整剧通读`，不得因文件已落盘而进入分镜）
+- `/剧本质检 {起止集}` 通过后：按规则 5-9 判定（若全剧剧本已完成但未整剧通读，停在 `分集剧本` 等 `/整剧通读`；否则本批次已通过且尚未转分镜时通常转 `分镜脚本`）
+- `/整剧通读` 通过后：按规则 5-9 判定（若全剧剧本已通过且尚未转分镜，通常转 `分镜脚本`）
+- `/分镜脚本 {起止集}` 成功落盘后：按规则 3-9 重新判定（**不得硬写 `分镜脚本`**——若还有下一批剧本待质检或整剧通读未过，应回到 `分集剧本`）
+- `/分镜质检 {起止集}` 通过后：按规则 1-11 判定
+- 用户通过 `/复盘` 或 `/继续` 恢复现场时：全量按规则 1-11 判定
 
 **禁止模式**：
 
 - ❌ `/分镜脚本` 落盘后无脑写 `currentStep = 分镜脚本`（会遮蔽剧本批次缺口）
-- ❌ `/剧本质检` 通过后无脑写 `currentStep = 分镜脚本`（用户可能要继续写下一批剧本）
+- ❌ `/剧本质检` 通过后无脑写 `currentStep = 分镜脚本`（用户可能要继续写下一批剧本，或全剧已完成但尚未 `/整剧通读`）
 - ❌ 以 `scriptCompletedRanges` 的最大区间直接推 `currentStep`（忽略质检状态）
 
 ## P0 与收口回退规则

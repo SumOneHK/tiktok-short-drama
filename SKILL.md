@@ -116,6 +116,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `/结构` | `故事结构.md` | 首次进入结构阶段再创建 |
 | `/分集大纲` | `分集大纲.md`、`分集追踪.md` | 追踪文档从大纲阶段开始启用 |
 | `/分集剧本 {起止集}` | `分集剧本/`、本批次集数文件 | **不**创建 `AI资产圣经.md` |
+| `/整剧通读` | 无新增主流程文件 | 全剧分集剧本完成后、分镜前的宏观通读门禁；只追加/更新 `质检检查点.md` 与 `剧本状态.json` |
 | `/分镜脚本 {起止集}` | `AI资产圣经.md`（若缺失）、`分镜脚本/`、本批次集数文件 | `AI资产圣经.md` 首次创建时机统一收敛到此 |
 | `/总检` | `总检报告.md` | 进入总检时创建 |
 | `/合规` | `合规报告.md` | 进入合规时创建 |
@@ -149,7 +150,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 1. **方向锁定层**：`/开始 → /立项` —— 先锁"谁会点开、为什么追更、主情绪是什么"
 2. **引擎搭建层**：`/设定 → /结构` —— 先把角色、关系、世界规则、升级链和高价值场面做实
-3. **批次生产层**：`/分集大纲 → /分集剧本 → /分镜脚本` —— 先保证状态变化、角色高光、尾钩承接，再补制作细节
+3. **批次生产层**：`/分集大纲 → /分集剧本 → /整剧通读 → /分镜脚本` —— 先保证状态变化、角色高光、尾钩承接和整剧观看体验，再补制作细节
 4. **收口交付层**：`/总检 → /合规 → /导出` —— 只处理真正阻塞交付的问题，不在最后阶段重开新坑
 
 ## 评审角色与核心原则
@@ -188,6 +189,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `/大纲质检` | `references/commands/qc-outline.md` | 承接、重复桥段、水集、卡点兑现 | 通过后才进 `/分集剧本` |
 | `/剧本质检 {起止集}` | `references/commands/qc-episode.md` | 批次剧本的人设、台词、承接、模板 | 通过后才写后续批次 |
 | `/衔接质检 {起止集}` | `references/commands/qc-link.md` | 相邻集断裂、重复、连续性问题 | 不通过先修相邻集 |
+| `/整剧通读` | `references/commands/qc-full-read.md` | 编剧/导演/观众/平台/本地化视角通读全剧分集剧本 | 全剧剧本完成后、分镜前必须通过 |
 | `/分镜质检 {起止集}` | `references/commands/qc-storyboard.md` | 拆镜粒度、执行性、竖屏适配、与源剧本一致性 | 通过后才进 `/总检` 或导出 |
 
 过程质检通用规则：
@@ -208,7 +210,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `/结构` | `qcStatus.bible = 已通过` |
 | `/分集大纲` | `qcStatus.architecture = 已通过` |
 | `/分集剧本 {起止集}` | `qcStatus.outline = 已通过` |
-| `/分镜脚本 {起止集}` | 目标集数被 `qcStatus.episodes` 中 `checkType=script` 且 `status=已通过` 的 range 完整覆盖 |
+| `/分镜脚本 {起止集}` | 目标集数被 `qcStatus.episodes` 中 `checkType=script` 且 `status=已通过` 的 range 完整覆盖；若全剧分集剧本已完成并通过批次剧本质检，还必须存在覆盖全剧的 `checkType=full-read` 且 `status=已通过` |
 | `/总检` | 已完成范围内不存在 `qcStatus.episodes/storyboards.status = 需修改`；制作包总检还要求分镜已覆盖目标交付范围 |
 | `/合规` | `qcStatus.production = 已通过` |
 | `/导出` | `qcStatus.production = 已通过` 且 `qcStatus.compliance = 已通过`；默认制作包还要求 `storyboardCompletedRanges` 覆盖全剧 |
@@ -248,5 +250,5 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `references/ai-production.md` | 14.4KB | **按 § 章节精读**，绝不整文件加载；字段清单类内容已指针化到 `templates/ai-asset-bible.md` |
 | `references/document-templates.md` | 2.2KB | 仅作为 `templates/*.md` 索引；调用方直接读 `templates/` 下对应文件 |
 | `references/templates/*.md` | 平均 1-4KB | 10 个独立模板文件，每命令只读对应一份 |
-| `references/process-qc.md` | 10.9KB | **仅质检时按 § 章节精读**；6 个质检命令的「重点检查 + 阻塞条件」已下沉到 `commands/qc-*.md` |
+| `references/process-qc.md` | 10.9KB | **仅质检时按 § 章节精读**；7 个质检命令的「重点检查 + 阻塞条件」已下沉到 `commands/qc-*.md` |
 | `references/quality-gate.md` | 7.4KB | 仅触发质检命令或输出内建自检时加载 |

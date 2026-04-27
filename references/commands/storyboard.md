@@ -45,6 +45,7 @@
    - 必须存在一条或多条记录，其 `checkType == "script"`、`status == "已通过"`，且 `range` 合并后完整覆盖本次目标集数
    - 目标集数中任一集未被已通过的 `script` 质检 range 覆盖 → 阻塞并提示用户先跑 `/剧本质检 {缺失区间}`
    - 目标集数中任一集落入 `status == "需修改"` 的 `script` 质检 range → 阻塞并提示用户先修复对应批次
+   - 若 `deliveryProgress.scriptCompletedRanges` 已覆盖 `1..episodeCount`，且 `checkType=script` 已通过覆盖全剧，则还必须存在覆盖全剧的 `checkType == "full-read"`、`status == "已通过"` 记录；缺失或 `需修改` → 阻塞并提示先执行 `/整剧通读`
    - 不允许以"刚写完手感没问题"为由绕过；前置闸门未通过时**不得**读取任何分镜模板或开始拆镜
 2. 分镜脚本是制作稿，不是对白稿重排。必须把"场景目标 -> 动作节拍 -> 镜头/分镜"拆到可执行粒度。
 3. 单集权威模板只认 `references/storyboard-script-templates.md`；拆镜顺序、镜头粒度和回写规则只认 `references/storyboard-conversion.md`。
