@@ -57,6 +57,7 @@
     "bible": "未检查|已通过|需修改",
     "architecture": "未检查|已通过|需修改",
     "outline": "未检查|已通过|需修改",
+    "planningRead": "未检查|已通过|需修改",
     "episodes": [
       {
         "range": "001-005",
@@ -123,6 +124,7 @@
     "bible": "未检查",
     "architecture": "未检查",
     "outline": "未检查",
+    "planningRead": "未检查",
     "episodes": [],
     "storyboards": [],
     "production": "未检查",
@@ -194,7 +196,12 @@
 - `/大纲质检` 结束后更新:
   - `lastQcStep = "/大纲质检"`
   - `qcStatus.outline = 已通过 / 需修改`
-  - 通过后：`currentStep = 分集剧本`；不通过：`currentStep = 分集大纲`
+  - 通过后：`qcStatus.planningRead = 未检查`，`currentStep = 分集剧本`；不通过：`qcStatus.planningRead = 未检查`，`currentStep = 分集大纲`
+- `/策划通读` 结束后更新：
+  - `lastQcStep = "/策划通读"`
+  - `qcStatus.planningRead = 已通过 / 需修改`
+  - 通过后：`currentStep = 分集剧本`
+  - 不通过：按最早需要修源的阶段回退 `currentStep`（通常为 `分集大纲`；若需改设定或结构，则回退到对应阶段）
 - `/分集剧本 {起止集}` 成功落盘后更新：
   - `deliveryProgress.scriptCompletedRanges` 追加或合并对应区间（仅代表"已落盘"，不代表"已通过"）
   - `deliveryProgress.nextStoryboardRange` 默认指向本批次区间，除非已明确改为其他区间
@@ -234,8 +241,9 @@
 7. 存在任一区间 `qcStatus.episodes[*].status == 需修改` → `currentStep = 分集剧本`（需修复当前批次剧本或整剧通读问题）
 8. 存在已落盘剧本区间但未被 `qcStatus.episodes[*]` 中 `checkType == "script"` 且 `status == 已通过` 的 range 覆盖 → `currentStep = 分集剧本`（需补 `/剧本质检` 或修复剧本）
 9. 剧本未覆盖全剧（`scriptCompletedRanges` 未覆盖 `1..episodeCount`） → `currentStep = 分集剧本`
-10. 上游门禁未通过时按最早未通过阶段回退：`qcStatus.outline != 已通过` → `分集大纲`；`qcStatus.architecture != 已通过` → `结构`；`qcStatus.bible != 已通过` → `设定`；`qcStatus.market != 已通过` → `立项`
-11. 其余情况按上游命令决定
+10. 首批剧本前，若项目满足 `/策划通读` 触发条件且 `qcStatus.planningRead != 已通过` → `currentStep` 仍可为 `分集剧本`，但 `/分集剧本 {起止集}` 被阻塞，必须先执行或修复 `/策划通读`
+11. 上游门禁未通过时按最早未通过阶段回退：`qcStatus.outline != 已通过` → `分集大纲`；`qcStatus.architecture != 已通过` → `结构`；`qcStatus.bible != 已通过` → `设定`；`qcStatus.market != 已通过` → `立项`
+12. 其余情况按上游命令决定
 
 **触发时机**：
 
