@@ -27,7 +27,7 @@ usage() {
   1. 如果不传具体文件，则会合并 source-dir 下全部 .md 文件。
   2. 如果传入文件列表，则按传入顺序合并。
   3. 默认 source-dir 为当前项目下的 `分集剧本/`。
-  4. 传入 --public-clean 时，去除 YAML frontmatter、写前检查 HTML 注释和源文件注释，生成对外清稿。
+  4. 传入 --public-clean 时，去除 YAML frontmatter、HTML 注释和内部质检/自检段，生成对外清稿。
 EOF
 }
 
@@ -40,6 +40,9 @@ emit_file() {
   fi
 
   awk '
+    function starts_internal_heading(line) {
+      return line ~ /^##[[:space:]]*(内建自检|内部自检|质检结论|质检状态|修复记录|生产备注)/
+    }
     NR == 1 && $0 == "---" {
       in_frontmatter = 1
       next
@@ -51,18 +54,27 @@ emit_file() {
     in_frontmatter {
       next
     }
-    /<!-- 写前检查答案/ || /<!-- 写前14问答案/ {
-      in_check_comment = 1
+    in_html_comment {
+      if ($0 ~ /-->/) {
+        in_html_comment = 0
+      }
       next
     }
-    in_check_comment && /-->/ {
-      in_check_comment = 0
+    /<!--/ {
+      if ($0 !~ /-->/) {
+        in_html_comment = 1
+      }
       next
     }
-    in_check_comment {
-      next
+    in_internal_block {
+      if ($0 ~ /^##[[:space:]]+/) {
+        in_internal_block = 0
+      } else {
+        next
+      }
     }
-    /^<!-- 源文件：/ {
+    starts_internal_heading($0) {
+      in_internal_block = 1
       next
     }
     {

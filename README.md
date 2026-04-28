@@ -16,7 +16,7 @@ AI 写短剧最常见的三个坑：
 2. **钩子与付费卡点失灵**——开场留不住人，该付费的地方没爽点，会员转化拉胯
 3. **跨文档漂移**——设定、结构、大纲、剧本、分镜各写各的，改一处漏十处
 
-本 Skill 用一套**4 层主线流程 + 6 道过程质检 + 跨文档漂移双向复检**的工程化框架解决这些问题，把短剧创作做成可追踪、可回滚、可交付的流水线，而不是灵光一现的手工作坊。
+本 Skill 用一套**4 层主线流程 + 7 道过程质检 + 跨文档漂移双向复检**的工程化框架解决这些问题，把短剧创作做成可追踪、可回滚、可交付的流水线，而不是灵光一现的手工作坊。
 
 ---
 
@@ -24,7 +24,8 @@ AI 写短剧最常见的三个坑：
 
 ### 工程化流水线
 - **4 层主线流程**：方向锁定 → 引擎搭建 → 批次生产 → 收口交付
-- **6 道过程质检**：设定 / 结构 / 大纲 / 剧本 / 衔接 / 分镜，每道都带 P0 硬阻断
+- **兼容主创创作递进**：创意 → 梗概 → 情节点大纲 → 剧本初稿；命令名不强制对应传统叫法，但产物边界必须对应
+- **7 道过程质检**：设定 / 结构 / 大纲 / 剧本 / 衔接 / 整剧通读 / 分镜，每道都带 P0 硬阻断
 - **状态机驱动**：`剧本状态.json` 记录 `currentStep` / `deliveryProgress` / `qcStatus`，支持中断恢复与批次滚动生产
 - **跨文档漂移双向复检**：上游改动自动回退下游质检状态，下游新增共享字段反向触发上游复检
 
@@ -78,6 +79,7 @@ git clone https://github.com/SumOneHK/tiktok-short-drama.git ~/.claude/skills/ti
 # 3. 批次生产
 /分集大纲    →   /大纲质检
 /分集剧本 1-10   →   /剧本质检 1-10
+全剧剧本完成后    →   /整剧通读
 /分镜脚本 1-10   →   /分镜质检 1-10
 
 # 4. 收口交付
@@ -86,7 +88,7 @@ git clone https://github.com/SumOneHK/tiktok-short-drama.git ~/.claude/skills/ti
 /导出
 ```
 
-每条命令都是**自包含**的——进入命令只读 `references/commands/{命令}.md` 即可，不需要反复回查主文件。
+每条命令都以 `references/commands/{命令}.md` 为入口；进入命令后先读对应命令说明书，再按其中的核心层/条件层加载必要引用，不需要反复回查主文件。
 
 ---
 
@@ -97,11 +99,11 @@ git clone https://github.com/SumOneHK/tiktok-short-drama.git ~/.claude/skills/ti
 | 命令 | 用途 |
 |------|------|
 | `/开始` | 题材收窄与方向锁定（交互式推荐 / 基于用户想法收窄） |
-| `/立项` | 把锁定方向整理为正式版 `选题分析.md` |
+| `/立项` | 把锁定方向整理为正式版 `选题分析.md`，产出短版故事梗概 |
 | `/设定` | 一体化完成世界观、角色、关系、场景、本地化 |
-| `/结构` | 把项目做成可拆集、可卡点、可升级的故事引擎 |
-| `/分集大纲` | 拆全剧分集推进图，同步分集追踪 |
-| `/分集剧本 {起止集}` | 按批次落地纯叙事中间稿（不写镜头） |
+| `/结构` | 把梗概拆成可追踪的全剧关键情节点链条 |
+| `/分集大纲` | 拆全剧分集推进图，明确逐集情节点与情节点后果 |
+| `/分集剧本 {起止集}` | 按批次落地剧本初稿 / 纯叙事中间稿（不写镜头） |
 | `/分镜脚本 {起止集}` | 把已通过剧本质检的单集转成可执行 AI 视频分镜 |
 | `/总检` | 跨文档一致性、商业强度、AI 制作就绪检查 |
 | `/合规` | 内部前置合规筛查 |
@@ -116,6 +118,7 @@ git clone https://github.com/SumOneHK/tiktok-short-drama.git ~/.claude/skills/ti
 | `/大纲质检` | 承接、重复桥段、水集、卡点兑现 | 通过后才进 `/分集剧本` |
 | `/剧本质检 {起止集}` | 批次剧本的人设、台词、承接、模板 | 通过后才写后续批次 |
 | `/衔接质检 {起止集}` | 相邻集断裂、重复、连续性问题 | 不通过先修相邻集 |
+| `/整剧通读` | 全剧分集剧本宏观体验、商业强度、可分镜性 | 全剧剧本完成后、分镜前必须通过 |
 | `/分镜质检 {起止集}` | 拆镜粒度、执行性、竖屏适配、与剧本一致性 | 通过后才进 `/总检` 或导出 |
 
 任一质检出现 `P0`，对应 `qcStatus` 必须记为 `需修改`，**禁止推进下一阶段**。
@@ -156,15 +159,14 @@ tiktok-short-drama/
     ├── tiktok-platform-constraints.md
     ├── compliance-rules.md         # R-01~R-06 红线
     ├── ai-production.md            # AI 制作规范（按章节精读）
-    ├── process-qc.md               # 过程质检详细检查项
-    ├── quality-gate.md
-    ├── document-templates.md       # templates/ 索引
-    ├── commands/                   # 16 个命令说明书
+    ├── process-qc.md               # 跨阶段质检时机、记录和推进元规则
+    ├── quality-gate.md             # 响应格式与 P0/P1/P2 分级
+    ├── commands/                   # 17 个命令说明书
     │   ├── start.md / kickoff.md / setup.md / structure.md
     │   ├── outline.md / episode.md / storyboard.md
     │   ├── review.md / compliance.md / export.md
     │   └── qc-setup.md / qc-structure.md / qc-outline.md
-    │       qc-episode.md / qc-link.md / qc-storyboard.md
+    │       qc-episode.md / qc-link.md / qc-full-read.md / qc-storyboard.md
     └── templates/                  # 10 个独立文档模板
         ├── topic-start.md / topic-proposal.md
         ├── story-setup.md / story-structure.md
@@ -217,10 +219,10 @@ tiktok-short-drama/
 ## 工作模式
 
 ### 模式一：从 0 到 1 新建项目
-直接 `/开始` → 一路推进到 `/导出`，每步有内建自检 + 可选质检命令。
+直接 `/开始` → 一路推进到 `/导出`，每步有内建自检 + 阶段闸门质检；从 `/设定质检` 开始，独立质检通过才授权下一阶段。
 
 ### 模式二：已有中文短剧改出海版
-从 `/设定` 阶段接手，`mode` 设置为 `overseas-en-dialogue`，中文策划稳定，英文对白按 `language-mode.md` 规则生成。
+从 `/设定` 阶段接手，`mode` 设置为 `overseas`，`languageMode` 设置为 `overseas-en-dialogue`，中文策划稳定，英文对白按 `language-mode.md` 规则生成。
 
 ### 模式三：重做题材定位 / 钩子 / 节奏
 从 `/结构` 阶段回头，结构变更后按"跨文档漂移双向复检"规则自动回退下游 `qcStatus`。
@@ -261,4 +263,3 @@ tiktok-short-drama/
 - TikTok / Reelshort / DramaBox 等平台的竖屏短剧内容规律
 - 传统编剧结构理论（三幕式、Save the Cat、悬念债务）
 - AI 视频生产的工程化流水线（资产连续性、时长守恒、分镜粒度）
-

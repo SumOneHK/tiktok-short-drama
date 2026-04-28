@@ -18,6 +18,18 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 当前工作目录默认是**多剧工作区**。一部剧必须对应一个独立的完整剧本目录，所有业务产物都写入该剧自己的目录；同一个工作区下可以并行维护多部剧，互不影响。多剧目录解析、命名和隔离规则详见 `references/workspace-projects.md`，所有命令读写业务文件前都必须先解析 `ACTIVE_DRAMA_DIR`。
 
+## AI 制作形态总原则
+
+本 skill 默认服务的是**AI 制作的竖屏短剧 / 漫剧 / 动态漫画 / 真人感 AI 视频**，不是默认服务真人剧组拍摄。`真人感`、`漫剧风`、`半写实 CG`、`厚涂插画`、`3D 卡通` 等都只是 `artStyle` 和目标模型选择，不是不同的创作管线。
+
+执行含义：
+
+- 题材判断不得因为“短剧”二字自动收窄到真人拍摄、写实都市或单一写实实景方向。
+- `/开始`、`/立项`、`/设定` 推荐题材时，必须同时考虑真人感 AI 视频、漫剧/动态漫画、半写实/强风格化 AI 视频的可行性。
+- “可拍 / 制作成本 / 导演视角”统一理解为“竖屏 AI 可视化 / AI 生成稳定性 / 分镜表达效率”，不是剧组实拍成本。
+- 剧本阶段只保证人、戏、情绪、动作和视觉锚点成立；具体真人感、漫剧感、插画感、3D 感在 `/分镜脚本` 与 `AI资产圣经.md` 中通过 `artStyle` 统一注入。
+- 除非用户明确要求“真人拍摄版”或项目 `artStyle` 已锁定为写实真人感，否则不得把“现实可拍性”作为压低题材想象力的理由。
+
 下面这棵树表示单部剧完整跑通后的最终形态，不代表启动时就要一次性创建全部文件：
 
 ```text
@@ -49,24 +61,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 所有上述文件名都相对 `ACTIVE_DRAMA_DIR`，不是工作区根目录。
 
-旧版单剧目录结构仍兼容：
-
-```text
-{单部剧目录}/
-├── 剧本状态.json
-├── 选题分析.md
-├── 故事设定.md
-├── AI资产圣经.md
-├── 故事结构.md
-├── 分集大纲.md
-├── 分集追踪.md
-├── 质检检查点.md
-├── 分集剧本/
-├── 分镜脚本/
-├── 总检报告.md
-├── 合规报告.md
-└── 导出/
-```
+旧版直接进入单部剧目录的工作方式仍兼容；目录解析、自动恢复和多剧歧义处理统一以 `references/workspace-projects.md` 为准。
 
 ## 每次进入本 skill 先做的事
 
@@ -153,9 +148,27 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 3. **批次生产层**：`/分集大纲 → /分集剧本 → /整剧通读 → /分镜脚本` —— 先保证状态变化、角色高光、尾钩承接和整剧观看体验，再补制作细节
 4. **收口交付层**：`/总检 → /合规 → /导出` —— 只处理真正阻塞交付的问题，不在最后阶段重开新坑
 
+## 与主创创作流程的对应
+
+本 skill 不强制使用传统命名，但必须符合"创意 → 梗概 → 情节点大纲 → 剧本初稿"的创作递进：
+
+| 主创流程 | 本 skill 对应阶段 | 必须完成的创作产物 |
+|---------|------------------|------------------|
+| 创意 | `/开始` | 可被用户选择的题材方向、主情绪、目标观众和前 3 集承诺 |
+| 梗概 | `/立项`，必要时承接 `/设定` | 一句话卖点、短版故事梗概、主角困境/欲望/阻力、结局方向、风险与不做项 |
+| 情节点大纲 | `/结构` → `/分集大纲` | 全剧关键情节点链条、阶段升级、逐集情节点、状态变化、尾钩和卡点 |
+| 剧本初稿 | `/分集剧本 {起止集}` | 按集落地的纯叙事初稿，含场次、动作、对白、情绪和尾钩；不写分镜和 AI prompt |
+
+执行含义：
+
+- `/设定` 不是独立于创作流程之外的额外绕路，而是为梗概和情节点提供角色、关系、世界规则与场景依据。
+- `/结构` 不应只输出抽象理论，必须把梗概拆成可追踪的关键情节点链条。
+- `/分集大纲` 不应只是每集简介，必须写清每集情节点如何改变状态、制造回报和递送下一集。
+- `/分集剧本` 默认是剧本初稿，不是终稿制作稿；终稿制作信息在 `/分镜脚本` 阶段处理。
+
 ## 评审角色与核心原则
 
-每个阶段至少经过 2-4 个专业角色视角复核（市场/编剧/导演/角色运营/制片/本地化），不需要每次全上，但不能只靠单一视角拍板。完整的"8 阶段角色视角清单 + 常见问题 + 简化要求"详见 `references/role-perspectives.md`。
+每个阶段至少经过 2-4 个专业角色视角复核（市场/编剧/导演/AI画面/角色运营/AI制片/资产复用/本地化），不需要每次全上，但不能只靠单一视角拍板。完整的"8 阶段角色视角清单 + 常见问题 + 简化要求"详见 `references/role-perspectives.md`。
 
 短剧创作 13 条核心原则（验证为先、合并设计、悬念是债务、情绪工程、复杂度服务质量等）写在 `references/philosophy.md`。在做架构决策、判断 P0、向用户解释取舍时按需精读，不需要每次进命令都加载。
 
@@ -163,7 +176,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 ## 命令索引
 
-每条命令都有自包含说明书 `references/commands/{命令}.md`。进入命令后**只读对应命令文件即可**，不需要再回 `SKILL.md` 查加载规则。
+每条命令都有自包含说明书 `references/commands/{命令}.md`。进入命令后先读对应命令文件，再按该文件的分层加载规则读取必要引用；不需要再回 `SKILL.md` 查加载规则。
 
 | 命令 | 说明书 | 核心用途 |
 |------|--------|---------|
@@ -180,7 +193,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 ## 过程质检命令
 
-过程质检命令与主流程命令正交。每条质检命令都有自包含说明书 `references/commands/qc-{阶段}.md`，进入命令后**只读对应命令文件即可**，不需要再回 `SKILL.md` 查加载规则。独立质检的详细检查项以对应 `qc-*.md` 为准；跨阶段批次规则、记录要求和推进规则以 `references/process-qc.md` 为准；记录格式以 `references/templates/qc-checkpoint.md` 为准。
+过程质检命令与主流程命令正交。每条质检命令都有自包含说明书 `references/commands/qc-{阶段}.md`，进入命令后先读对应命令文件，再按该文件的分层加载规则读取必要引用；不需要再回 `SKILL.md` 查加载规则。独立质检的详细检查项以对应 `qc-*.md` 为准；跨阶段批次规则、记录要求和推进规则以 `references/process-qc.md` 为准；记录格式以 `references/templates/qc-checkpoint.md` 为准。
 
 | 命令 | 说明书 | 主要检查对象 | 推进门槛 |
 |------|--------|-------------|---------|
@@ -194,7 +207,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 过程质检通用规则：
 
-1. 每个生产步骤先做内建自检，再决定是否调用独立质检命令。
+1. 每个生产步骤先做内建自检，再按阶段门禁执行对应独立质检命令；从 `/设定质检` 开始，闸门质检通过才授权下一阶段。
 2. 首次执行任一质检命令时若 `质检检查点.md` 不存在则当场创建。
 3. 任何质检出现 `P0`，对应 `qcStatus` 必须记为 `需修改`，禁止推进下一阶段。
 4. `质检检查点.md` 中的问题要保持同一 ID 跟踪到底；修复后更新原状态，不重复新建。
@@ -221,34 +234,11 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 > **核心约束（必须遵守）**：所有 references 都采用**分层 + 按段**加载。命令文件已内嵌"核心层"与"条件层"表，进入命令后**直接按命令文件的加载规则执行即可**。`ai-production.md` / `process-qc.md` 两个胖文件**永远只读对应章节**，严禁整文件 dump；`templates/*.md` 按文档类型单独加载，不要跨文件读取。
 
-参考文件清单（索引用，不代表加载顺序）：
+参考文件导航（入口索引，不替代命令文件的加载表）：
 
-| 文件 | 字节 | 主要消费方 |
-|------|------|-----------|
-| `references/workspace-projects.md` | ~4KB | 所有命令入口；解析多剧工作区与活动剧本目录，确保业务文件只写入单部剧目录 |
-| `references/state-schema.md` | 5.8KB | 所有写状态字段的命令 |
-| `references/philosophy.md` | 2.9KB | 架构决策与判 P0 时按需 |
-| `references/role-perspectives.md` | 6.2KB | 各阶段内建自检 |
-| `references/display-vocab.md` | 1.7KB | 生成用户面向推荐时 |
-| `references/start-topic-pool.md` | 6.5KB | `/开始` 核心层 |
-| `references/market-analysis.md` | 5.6KB（模板已下沉） | `/开始` 核心层（方法论）；模板实体在 `templates/topic-start.md` / `templates/topic-proposal.md` |
-| `references/world-character-scene.md` | 10.0KB | `/设定` 核心层 |
-| `references/viewer-payoff-contract.md` | ~8KB | `/结构`、`/分集大纲`、`/分集剧本` 与对应质检核心层；定义观看回报优先级、证据型故事、冷静型主角、双时间线、尾钩、角色实体锁 |
-| `references/script-quality-engine.md` | ~8KB | `/结构`、`/分集大纲`、`/分集剧本` 与对应质检按段加载；整合 writing 知识库的三密度、3/15/45 节奏、钩子、拉扯、主角出场、展示式对白和画面感 |
-| `references/story-engine.md` | 12.2KB | `/结构` 核心层；`/分集大纲` 只读 §按集数映射的结构骨架 + §节奏设计 段；`/分集剧本` 关键集条件层 |
-| `references/episode-writing-protocol.md` | 15.8KB | `/分集剧本` 核心层；§二写前检查（A 组连接 8 项 + B 组高质量自检 6 项 + C 组短剧观众体验 7 项 + D 组密度与表现 5 项，含信息差移动、时长外置算术、三密度、节奏锚、可视化打脸和尾钩具象）；§十一 时长外置算术 P0 硬规则（E7-E9 沉淀，禁"约 N 秒"含糊话术） |
-| `references/episode-script-templates.md` | 12.6KB | `/分集剧本` 核心层；场次头新增"场景状态差量"硬字段；集信息新增三密度、节奏锚、钩子/拉扯、展示式表达字段；§单集硬约束"关于时长"升级为"可选但给了就必须闭合"（E7-E9 沉淀） |
-| `references/storyboard-conversion.md` | ~15KB | `/分镜脚本` 核心层；§五"时长守恒规则（权威定义）"为时长容差唯一权威源（自下而上推导 · ±0.5s 闭合）；含镜头功能分类表、对白时长校准公式 |
-| `references/storyboard-script-templates.md` | 9.2KB | `/分镜脚本` 核心层；统一硬字段 P0/P1 完整度判级表（含时间线归属，闪回项目必填） |
-| `references/continuity-ledger.md` | 5.7KB | `/分集剧本` 核心层；§五含双时间线/闪回连续性账（含闪回/失忆/穿越类项目必维护） |
-| `references/emotion-design.md` | 6.5KB | 条件层 |
-| `references/paywall-rules.md` | 3.4KB | 条件层（卡点场景） |
-| `references/language-mode.md` | 4.3KB | `overseas` 模式条件层 |
-| `references/document-sync.md` | 6.7KB | 发现冲突时条件层 |
-| `references/tiktok-platform-constraints.md` | 8.3KB（含竖屏安全区） | `/开始` 核心层；其它命令条件层 |
-| `references/compliance-rules.md` | 5.0KB | `/合规` 核心层；通用红线已表格化为 R-01~R-06 ID，`/开始` 与 `/合规` 逐项打钩 |
-| `references/ai-production.md` | 14.4KB | **按 § 章节精读**，绝不整文件加载；字段清单类内容已指针化到 `templates/ai-asset-bible.md` |
-| `references/document-templates.md` | 2.2KB | 仅作为 `templates/*.md` 索引；调用方直接读 `templates/` 下对应文件 |
-| `references/templates/*.md` | 平均 1-4KB | 10 个独立模板文件，每命令只读对应一份 |
-| `references/process-qc.md` | 10.9KB | **仅质检时按 § 章节精读**；7 个质检命令的「重点检查 + 阻塞条件」已下沉到 `commands/qc-*.md` |
-| `references/quality-gate.md` | 7.4KB | 仅触发质检命令或输出内建自检时加载 |
+- **工作区与状态**：`references/workspace-projects.md`、`references/state-schema.md`
+- **主流程命令**：`references/commands/*.md`；进入命令后按该文件的核心层/条件层加载
+- **质检命令**：`references/commands/qc-*.md`；具体检查项和阻塞条件只在对应文件维护
+- **跨阶段元规则**：`references/process-qc.md`（按章节读）、`references/quality-gate.md`（响应格式和 P0/P1/P2 定义）、`references/document-sync.md`
+- **模板**：`references/templates/*.md`；每个命令只读自己要实例化的模板
+- **胖参考**：`references/ai-production.md`、`references/storyboard-conversion.md`、`references/episode-writing-protocol.md` 等只按命令文件标注的章节读取，严禁整文件 dump

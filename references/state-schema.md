@@ -213,7 +213,8 @@
   - 通过后按 §滚动生产的 currentStep 语义 重新判定 `currentStep`
 - `/总检` 结束后更新：
   - `lastQcStep = "/总检"`
-  - `qcStatus.production = 已通过 / 需修改`
+  - 默认 `production-package` 总检：`qcStatus.production = 已通过 / 需修改`
+  - 若用户明确要求 `writing-only` 总检（编剧包/非制作包/暂不含分镜），只更新 `总检报告.md` 与 `lastQcStep`，不得写 `qcStatus.production = 已通过`；可在报告和备注中标明"写作层通过，未授权制作包/合规/导出"
 - `/合规` 结束后更新：
   - `lastQcStep = "/合规"`
   - `qcStatus.compliance = 已通过 / 需修改`

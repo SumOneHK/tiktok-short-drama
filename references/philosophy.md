@@ -22,5 +22,5 @@
 | 9 | 编剧是情绪工程师，必须有可解释的情绪波形 | 全剧情绪曲线缺失，或单集情绪起点=终点 | `emotion-design.md`、`story-engine.md` |
 | 10 | 悬念是债务，不是装饰 | 悬念埋了未登记 / 登记了未兑现 / 超过 5/8/12 集仍未升级 | `continuity-ledger.md`、`episode-writing-protocol.md` |
 | 11 | 交付物必须能进入 AI 制作 | 分镜稿缺关键镜头字段；时长三层未闭合 | `ai-production.md`、`storyboard-conversion.md`、`storyboard-script-templates.md` |
-| 12 | 每阶段至少 2-4 个专业角色视角复核 | 整批产物只过了"编剧"单一视角，未过市场/制片/本地化 | `role-perspectives.md`、`quality-gate.md` |
+| 12 | 每阶段至少 2-4 个专业角色视角复核 | 整批产物只过了"编剧"单一视角，未过市场/AI制片/本地化 | `role-perspectives.md`、`quality-gate.md` |
 | 13 | 复杂度服务质量，不服务"看起来完整" | 配角档案与主角等长 / 水集占比 > 20% / 关键集字段不全 | `process-qc.md` §四、`quality-gate.md` |
