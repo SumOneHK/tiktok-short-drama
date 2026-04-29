@@ -72,9 +72,9 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 5. 若已有旧项目内容但缺少当前步骤继续所必需的前置文档，只补建当前所需的最小文档集，不顺手创建后续阶段文件。
 6. 任何阶段发现前置文档不成立，回退到前一阶段重做，不带病推进。
 7. 项目启动一律先走 `/开始`，不要绕过 `/开始` 直接进入 `/立项`。
-8. 若已进入滚动生产，恢复现场时**必须同时完成以下四项检查**，不允许只看 `currentStep` 就继续写：
+8. 若已进入批次生产，恢复现场时**必须同时完成以下四项检查**，不允许只看 `currentStep` 就继续写：
    - 检查 `deliveryProgress.scriptCompletedRanges`：确认最近已完成的剧本批次范围
-   - 检查 `deliveryProgress.storyboardCompletedRanges`：确认是否存在"剧本已完成但分镜未完成"的缺口
+   - 检查 `deliveryProgress.storyboardCompletedRanges`：确认是否已经误生成或已完成正式分镜区间
    - 检查 `deliveryProgress.nextScriptRange` 与 `nextStoryboardRange`：确认下一批待执行区间
    - 检查 `qcStatus.episodes` 和 `qcStatus.storyboards`：确认最近一批次是否已通过质检；状态为 `需修改` 必须先修复，不得继续扩写
 9. **跨文档漂移双向复检规则（owner 意识刚需）**：pipeline 顺序 `设定 → 结构 → 大纲 → 剧本 → 分镜` 中，任一文档变更都必须按下列双向规则触发复检，不得只看方向的一半。"已通过"不是不可变事实——它只代表"当时与兄弟文档一致"。
@@ -113,7 +113,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `/策划通读` | 无新增主流程文件 | `/大纲质检` 通过后、首批剧本前的开写决策门；只追加/更新 `质检检查点.md` 与 `剧本状态.json` |
 | `/分集剧本 {起止集}` | `分集剧本/`、本批次集数文件 | **不**创建 `AI资产圣经.md` |
 | `/整剧通读` | 无新增主流程文件 | 全剧分集剧本完成后、分镜前的宏观通读门禁；只追加/更新 `质检检查点.md` 与 `剧本状态.json` |
-| `/分镜脚本 {起止集}` | `AI资产圣经.md`（若缺失）、`分镜脚本/`、本批次集数文件 | `AI资产圣经.md` 首次创建时机统一收敛到此 |
+| `/分镜脚本 {起止集}` | `AI资产圣经.md`（若缺失）、`分镜脚本/`、本批次集数文件 | 正式分镜只在全剧分集剧本完成、批次剧本质检全通过、`/整剧通读` 通过后创建；`AI资产圣经.md` 首次创建时机统一收敛到此 |
 | `/总检` | `总检报告.md` | 进入总检时创建 |
 | `/合规` | `合规报告.md` | 进入合规时创建 |
 | `/导出` | `导出/` 及导出文件 | 真正导出时再创建 |
@@ -146,7 +146,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 
 1. **方向锁定层**：`/开始 → /立项` —— 先锁"谁会点开、为什么追更、主情绪是什么"
 2. **引擎搭建层**：`/设定 → /结构` —— 先把角色、关系、世界规则、升级链和高价值场面做实
-3. **批次生产层**：`/分集大纲 → /策划通读 → /分集剧本 → /整剧通读 → /分镜脚本` —— 先判断策划是否值得开写，再保证状态变化、角色高光、尾钩承接和整剧观看体验，最后补制作细节
+3. **批次生产层**：`/分集大纲 → /策划通读 → /分集剧本 → /剧本质检（含批次剧本通读） → 循环至全剧剧本完成 → /整剧通读 → /分镜脚本` —— 先判断策划是否值得开写，每个剧本批次先用多视角通读抓局部问题；正式分镜必须等全剧剧本完成并经整剧通读定稿后再生成，避免后续修剧本导致分镜和资产返工
 4. **收口交付层**：`/总检 → /合规 → /导出` —— 只处理真正阻塞交付的问题，不在最后阶段重开新坑
 
 ## 与主创创作流程的对应
@@ -189,7 +189,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `/结构` | `references/commands/structure.md` | 把项目做成可拆集、可卡点、可升级的故事引擎 |
 | `/分集大纲` | `references/commands/outline.md` | 拆全剧分集推进图，同步 `分集追踪.md` |
 | `/分集剧本 {起止集}` | `references/commands/episode.md` | 按批次落地纯叙事中间稿（不写镜头） |
-| `/分镜脚本 {起止集}` | `references/commands/storyboard.md` | 把已通过剧本质检的单集转成可执行 AI 视频分镜 |
+| `/分镜脚本 {起止集}` | `references/commands/storyboard.md` | 全剧剧本完成并通过 `/整剧通读` 后，把定稿剧本转成可执行 AI 视频分镜 |
 | `/总检` | `references/commands/review.md` | 跨文档一致性、商业强度、AI 制作就绪检查 |
 | `/合规` | `references/commands/compliance.md` | 内部前置合规筛查 |
 | `/导出` | `references/commands/export.md` | 汇总对外协作包 |
@@ -204,7 +204,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `/结构质检` | `references/commands/qc-structure.md` | 情绪曲线、钩子、悬念债务、卡点关系 | 通过后才进 `/分集大纲` |
 | `/大纲质检` | `references/commands/qc-outline.md` | 承接、重复桥段、水集、卡点兑现 | 通过后进入开写前门禁；复杂/出海/精品项目先跑 `/策划通读` |
 | `/策划通读` | `references/commands/qc-planning-read.md` | 设定、结构、大纲、追踪的开写前多视角吸引力判断 | 精品/复杂/出海/30+ 集项目前，首批剧本前必须通过 |
-| `/剧本质检 {起止集}` | `references/commands/qc-episode.md` | 批次剧本的人设、台词、承接、模板 | 通过后才写后续批次 |
+| `/剧本质检 {起止集}` | `references/commands/qc-episode.md` | 批次剧本的人设、台词、承接、模板、动作桥与多视角批次通读 | 通过后才写后续批次 |
 | `/衔接质检 {起止集}` | `references/commands/qc-link.md` | 相邻集断裂、重复、连续性问题 | 不通过先修相邻集 |
 | `/整剧通读` | `references/commands/qc-full-read.md` | 编剧/导演/观众/平台/本地化视角通读全剧分集剧本 | 全剧剧本完成后、分镜前必须通过 |
 | `/分镜质检 {起止集}` | `references/commands/qc-storyboard.md` | 拆镜粒度、执行性、竖屏适配、与源剧本一致性 | 通过后才进 `/总检` 或导出 |
@@ -227,7 +227,7 @@ description: 面向 TikTok / 海外竖屏短剧（vertical short drama / micro-d
 | `/结构` | `qcStatus.bible = 已通过` |
 | `/分集大纲` | `qcStatus.architecture = 已通过` |
 | `/分集剧本 {起止集}` | `qcStatus.outline = 已通过`；若项目满足 `/策划通读` 触发条件，还必须 `qcStatus.planningRead = 已通过` |
-| `/分镜脚本 {起止集}` | 目标集数被 `qcStatus.episodes` 中 `checkType=script` 且 `status=已通过` 的 range 完整覆盖；若全剧分集剧本已完成并通过批次剧本质检，还必须存在覆盖全剧的 `checkType=full-read` 且 `status=已通过` |
+| `/分镜脚本 {起止集}` | `deliveryProgress.scriptCompletedRanges` 覆盖 `1..episodeCount`；`qcStatus.episodes` 中 `checkType=script` 且 `status=已通过` 的 range 覆盖全剧；必须存在覆盖全剧的 `checkType=full-read` 且 `status=已通过`。未满足时不得生成正式分镜或 `AI资产圣经.md` |
 | `/总检` | 已完成范围内不存在 `qcStatus.episodes/storyboards.status = 需修改`；制作包总检还要求分镜已覆盖目标交付范围 |
 | `/合规` | `qcStatus.production = 已通过` |
 | `/导出` | `qcStatus.production = 已通过` 且 `qcStatus.compliance = 已通过`；默认制作包还要求 `storyboardCompletedRanges` 覆盖全剧 |
